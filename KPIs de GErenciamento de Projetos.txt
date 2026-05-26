@@ -1,0 +1,37 @@
+Metas ou Objetivo
+
+Indicadores ou Métricas
+
+KPI: indicadores de desempenho composto por varias metricas
+
+Exemplo: CAC
+
+Em Projetos:
+Indicadores de projeto: 
+
+Valor Agregado (EV): valor que deveria ser gasto, considerando o trabalho já realizado
+
+https://www.youtube.com/watch?v=Mr22xLtOYec
+==========
+**Valor Planejado (PV): Valor que deveria ser gasto considerando o custo da linha de base.
+-Multiplica o percentual já executado do projeto pelo custo inicial.
+
+==========
+**Custo Real (AC): Custo do trabalho realizado até a data do dia.
+
+==========
+**Variação de Custo (CV): Compara o orçamento inicial do projeto contra o custo atual.
+
+==========
+**Indice de performance de custo (CPI): Medida calculada entre o trabalho real concluido com o custo real incorrido.
+
+==========
+**Indice de Performance de Cronograma (SPI): Medida calculada entre o progresso real e o planejado.
+
+
+
+
+
+
+
+

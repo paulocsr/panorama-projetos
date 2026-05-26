@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Panorama EVM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────────────── */
+:root {
+  --bg: #f7f6f3; --surface: #fff; --border: #e6e3dc; --text: #1a1a1a;
+  --muted: #6b6b6b; --accent: #2b3a55;
+  --green: #2f7d4f; --green-bg: #e3f1e8;
+  --amber: #b87a00; --amber-bg: #fbeed1;
+  --red:   #b3261e; --red-bg:   #f7dad7;
+  --blue-1: #2b3a55; --blue-2: #3b5998; --blue-3: #5b7ec1; --blue-4: #8aaee0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+
+/* ── Toolbar ───────────────────────────────────────────────────────────── */
+#toolbar{
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:10px 24px;
+  position:sticky;top:0;z-index:100;flex-wrap:wrap;
+}
+#toolbar .logo{font-weight:700;font-size:15px;letter-spacing:.3px;margin-right:8px}
+#toolbar .file-info{font-size:12px;opacity:.75;flex:1;min-width:140px}
+.tb-btn{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  color:#fff;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:500;
+  cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;
+  transition:background .15s;
+}
+.tb-btn:hover{background:rgba(255,255,255,.25)}
+.tb-btn svg{width:14px;height:14px;flex-shrink:0}
+#fileInput{display:none}
+
+/* ── Tabs ──────────────────────────────────────────────────────────────── */
+#tabs{
+  display:flex;gap:0;border-bottom:2px solid var(--border);
+  background:var(--surface);padding:0 24px;
+}
+.tab{
+  padding:12px 20px;font-size:13px;font-weight:500;color:var(--muted);
+  cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;
+  transition:all .15s;
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── Layout ────────────────────────────────────────────────────────────── */
+.page{display:none;padding:28px 28px 48px;max-width:1300px;margin:0 auto}
+.page.active{display:block}
+
+/* ── Empty state ───────────────────────────────────────────────────────── */
+#empty{
+  text-align:center;padding:80px 24px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+#empty .icon{font-size:48px}
+#empty h2{font-size:20px;color:var(--accent)}
+#empty p{color:var(--muted);max-width:420px;font-size:14px}
+.upload-big{
+  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;
+  margin-top:8px;transition:opacity .15s;
+}
+.upload-big:hover{opacity:.88}
+
+/* ── KPI cards ─────────────────────────────────────────────────────────── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.kpi .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.kpi .value{font-size:26px;font-weight:700;margin-top:5px}
+.kpi .sub{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* ── Panel ─────────────────────────────────────────────────────────────── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:18px}
+.panel-title{font-size:14px;font-weight:600;margin-bottom:14px}
+.two-col{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:18px}
+canvas{max-height:300px}
+.chart-note{font-size:11px;color:var(--muted);margin-top:8px}
+
+/* ── Projects table ────────────────────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--muted);padding:10px 8px;
+  border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+td{padding:11px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr:hover td{background:#fafaf7}
+.pname{font-weight:500}
+.pcode{font-size:11px;color:var(--muted)}
+
+/* ── Pill / badges ─────────────────────────────────────────────────────── */
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500}
+.pill.green{background:var(--green-bg);color:var(--green)}
+.pill.amber{background:var(--amber-bg);color:var(--amber)}
+.pill.red{background:var(--red-bg);color:var(--red)}
+
+/* ── Numbers ───────────────────────────────────────────────────────────── */
+.num{font-variant-numeric:tabular-nums;font-weight:500}
+.num.good{color:var(--green)}
+.num.bad{color:var(--red)}
+.num.warn{color:var(--amber)}
+
+/* ── Editable cells ────────────────────────────────────────────────────── */
+[contenteditable="true"]{
+  outline:none;border-bottom:1px dashed var(--amber);
+  padding-bottom:1px;cursor:text;min-width:60px;display:inline-block;
+}
+[contenteditable="true"]:empty::before{
+  content:attr(data-ph);color:#ccc;font-style:italic;font-size:12px;
+}
+[contenteditable="true"]:focus{border-bottom-color:var(--accent);background:#fffaeb}
+
+/* ── Accordion / EVM glossary ──────────────────────────────────────────── */
+.accordion-btn{
+  width:100%;background:none;border:none;text-align:left;padding:12px 0;
+  font-size:14px;font-weight:600;cursor:pointer;display:flex;
+  justify-content:space-between;align-items:center;color:var(--text);
+}
+.accordion-btn::after{content:"▸";transition:transform .2s}
+.accordion-btn.open::after{transform:rotate(90deg)}
+.accordion-body{display:none;padding-top:8px}
+.accordion-body.open{display:block}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+.ind{background:#fafaf7;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.ind-top{display:flex;align-items:baseline;gap:10px;margin-bottom:5px}
+.ind-code{font-weight:700;font-size:15px;color:var(--accent)}
+.ind-name{font-size:11px;color:var(--muted)}
+.ind-what{font-size:12px;color:var(--text);margin-bottom:8px}
+.ind-formula{font-family:ui-monospace,monospace;font-size:11px;background:#f0eee8;
+  padding:3px 7px;border-radius:5px;display:inline-block;margin-bottom:6px}
+.ind-read{padding-left:14px;font-size:11px;color:var(--muted);line-height:1.7}
+.ind-read b{color:var(--text);font-weight:500}
+h4.ind-h{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.6px;margin:20px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+h4.ind-h:first-of-type{margin-top:6px}
+
+/* ── Tooltips (floating, via JS) ───────────────────────────────────────── */
+.tip{cursor:help;border-bottom:1px dotted var(--muted);display:inline-block}
+#ftip{
+  position:fixed;background:#1c2333;color:#fff;padding:9px 13px;border-radius:7px;
+  font-size:12px;line-height:1.55;max-width:260px;white-space:normal;
+  pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;
+  text-transform:none;letter-spacing:0;font-weight:400;
+}
+#ftip.on{opacity:1}
+
+/* ── WBS tab ───────────────────────────────────────────────────────────── */
+#proj-selector-wrap{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+#proj-selector-wrap label{font-weight:500;font-size:13px;color:var(--muted)}
+#proj-select{
+  border:1px solid var(--border);border-radius:8px;padding:7px 12px;
+  font-size:13px;background:var(--surface);color:var(--text);cursor:pointer;
+}
+#wbs-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-left:auto}
+.leg-item{display:flex;align-items:center;gap:5px}
+.leg-dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* ── Top-down Tree ─────────────────────────────────────────────────────── */
+.tree-wrap{overflow:auto;padding:24px 20px 32px;text-align:center}
+
+.tree,.tree ul{list-style:none;margin:0;padding:0;display:flex;justify-content:center}
+
+.tree ul{padding-top:28px;position:relative}
+
+/* Vertical line dropping from parent down to the horizontal bar */
+.tree ul::before{
+  content:'';position:absolute;top:0;left:50%;
+  border-left:2px solid #ccc;width:0;height:28px;
+}
+
+.tree li{
+  display:inline-flex;flex-direction:column;align-items:center;
+  text-align:center;position:relative;padding:28px 10px 0;
+}
+
+/* Horizontal bar above each li: left half */
+.tree li::before{
+  content:'';position:absolute;top:0;right:50%;
+  border-top:2px solid #ccc;width:50%;height:28px;
+}
+/* Horizontal bar above each li: right half + vertical stem down to node */
+.tree li::after{
+  content:'';position:absolute;top:0;left:50%;
+  border-left:2px solid #ccc;width:50%;height:28px;
+  border-top:2px solid #ccc;
+}
+
+/* Only child */
+.tree li:only-child::before,.tree li:only-child::after{display:none}
+.tree li:only-child{padding-top:0}
+
+/* First child: no left extension */
+.tree li:first-child::before{border:0 none}
+.tree li:first-child::after{border-radius:6px 0 0 0}
+
+/* Last child: no right extension */
+.tree li:last-child::before{border-right:2px solid #ccc;border-radius:0 6px 0 0}
+.tree li:last-child::after{border:0 none}
+
+/* Root ul: no parent stem */
+ul.tree-root{display:inline-flex}
+ul.tree-root::before{display:none!important}
+ul.tree-root>li{padding-top:0}
+ul.tree-root>li::before,ul.tree-root>li::after{display:none}
+
+/* Node box */
+.org-node{
+  border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;
+  text-align:center;user-select:none;min-width:110px;max-width:160px;
+  word-break:break-word;border:2px solid transparent;
+  transition:box-shadow .15s;position:relative;display:inline-block;
+}
+.org-node:hover{box-shadow:0 2px 8px rgba(0,0,0,.15)}
+
+/* Collapse/expand toggle (sits below node box, above children ul) */
+.tree-toggle{
+  display:block;margin:4px auto 0;
+  background:#fff;border:1px solid #bbb;border-radius:50%;
+  width:18px;height:18px;font-size:10px;line-height:17px;
+  text-align:center;cursor:pointer;color:#777;
+  transition:background .12s;
+}
+.tree-toggle:hover{background:#f0f0f0}
+
+/* Level colours */
+.lvl-0{background:var(--blue-1);color:#fff;border-color:var(--blue-1);font-size:13px;font-weight:700;padding:10px 18px}
+.lvl-1{background:var(--blue-2);color:#fff;border-color:var(--blue-2)}
+.lvl-2{background:#e8eef8;color:#1a1a1a;border-color:var(--blue-3)}
+.lvl-3{background:#f4f6fb;color:#1a1a1a;border-color:var(--blue-4)}
+
+/* ── Risks mini-table ──────────────────────────────────────────────────── */
+.risk-sev{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600}
+.sev-alto{background:var(--red-bg);color:var(--red)}
+.sev-medio{background:var(--amber-bg);color:var(--amber)}
+.sev-baixo{background:var(--green-bg);color:var(--green)}
+
+/* ── Toast ─────────────────────────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);
+  background:#1a1a1a;color:#fff;padding:9px 20px;border-radius:8px;
+  font-size:13px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ── TOOLBAR ──────────────────────────────────────────────────────────── -->
+<div id="toolbar">
+  <span class="logo">📊 Panorama EVM</span>
+  <span class="file-info" id="fileInfo">Nenhum arquivo carregado</span>
+  <button class="tb-btn" onclick="document.getElementById('fileInput').click()">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M2 10v3h12v-3M8 2v8M5 5l3-3 3 3"/>
+    </svg>
+    Carregar .xlsx
+  </button>
+  <button class="tb-btn" id="exportBtn" onclick="exportXLSX()" style="display:none">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M2 10v3h12v-3M8 10V2M5 7l3 3 3-3"/>
+    </svg>
+    Exportar .xlsx
+  </button>
+  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadFile(this)">
+</div>
+
+<!-- ── TABS ─────────────────────────────────────────────────────────────── -->
+<div id="tabs" style="display:none">
+  <div class="tab active" onclick="switchTab('panorama',this)">Panorama EVM</div>
+  <div class="tab" onclick="switchTab('wbs',this)">WBS</div>
+</div>
+
+<!-- ── EMPTY STATE ──────────────────────────────────────────────────────── -->
+<div id="empty">
+  <div class="icon">📂</div>
+  <h2>Carregue sua planilha para começar</h2>
+  <p>Use o arquivo <strong>projetos-evm.xlsx</strong> como modelo. Preencha os dados dos seus projetos e faça o upload acima — ou clique no botão abaixo.</p>
+  <button class="upload-big" onclick="document.getElementById('fileInput').click()">Carregar projetos-evm.xlsx</button>
+</div>
+
+<!-- ── PANORAMA PAGE ─────────────────────────────────────────────────────── -->
+<div id="page-panorama" class="page">
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="panel">
+    <div class="panel-title">Projetos</div>
+    <div class="tbl-wrap">
+      <table id="projTable">
+        <thead><tr>
+          <th>Projeto</th><th>Sponsor</th>
+          <th><span class="tip" data-tip="Red / Amber / Green — semáforo de saúde do projeto. Verde: CPI ≥ 0,95 e SPI ≥ 0,95. Amarelo: algum índice entre 0,85–0,95 ou risco alto aberto. Vermelho: CPI ou SPI abaixo de 0,85, ou estouro confirmado.">RAG</span></th>
+          <th><span class="tip" data-tip="Cost Performance Index — eficiência de custo. Fórmula: EV ÷ AC. Acima de 1,00 = cada R$ gasto entrega mais de R$ 1 de valor. Abaixo de 0,85 = zona crítica (vermelho).">CPI</span></th>
+          <th><span class="tip" data-tip="Schedule Performance Index — eficiência de cronograma. Fórmula: EV ÷ PV. Acima de 1,00 = adiantado. Abaixo de 0,85 = atraso crítico (vermelho).">SPI</span></th>
+          <th><span class="tip" data-tip="Percentual do escopo total que foi concluído até a data de corte. Usado para calcular o Earned Value: EV = BAC × % Executado.">% Exec</span></th>
+          <th><span class="tip" data-tip="Budget at Completion — orçamento total aprovado para o projeto. É o valor da baseline original e serve de referência para todos os cálculos EVM. Não deve mudar sem uma mudança formal de escopo (CR).">BAC</span></th>
+          <th><span class="tip" data-tip="Variance at Completion — estouro ou economia projetada no final do projeto. Fórmula: BAC − EAC. Positivo = economia esperada. Negativo = estouro esperado.">VAC</span></th>
+          <th>Próximo Marco</th>
+        </tr></thead>
+        <tbody id="projRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-title"><span class="tip" style="border-bottom:none;cursor:help" data-tip="Gráfico de dispersão que mostra a posição de cada projeto em dois eixos simultâneos: SPI (cronograma) no eixo X e CPI (custo) no eixo Y. O cruzamento das linhas tracejadas marca o ponto 1,0 × 1,0 (ideal). Projetos no canto superior-direito estão dentro do prazo e do orçamento; no inferior-esquerdo, atrasados e estourando custo.">CPI × SPI ⓘ</span></div>
+      <canvas id="scatterChart"></canvas>
+      <div class="chart-note">Quadrante ideal: canto superior-direito (CPI ≥ 1 e SPI ≥ 1).</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Riscos abertos por severidade</div>
+      <canvas id="riskChart"></canvas>
+      <div class="chart-note">Soma de riscos abertos em todos os projetos.</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <button class="accordion-btn" onclick="toggleAccordion(this)">Como interpretar os indicadores</button>
+    <div class="accordion-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:4px">
+        Quatro <b>valores base</b> alimentam todo o EVM. A partir deles derivam as <b>variações</b>, os <b>índices de performance</b> e as <b>projeções</b>.
+      </p>
+      <h4 class="ind-h">Valores base — em R$</h4>
+      <div class="ind-grid">
+        <div class="ind"><div class="ind-top"><span class="ind-code">BAC</span><span class="ind-name">Budget at Completion</span></div><div class="ind-what">Orçamento total aprovado.</div><div class="ind-formula">BAC = linha de base</div><ul class="ind-read"><li>Não muda sem CR formal.</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">PV</span><span class="ind-name">Planned Value</span></div><div class="ind-what">Quanto <b>deveria</b> estar gasto até hoje.</div><div class="ind-formula">PV = BAC × % planejado</div><ul class="ind-read"><li>Curva esperada de consumo.</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">EV</span><span class="ind-name">Earned Value</span></div><div class="ind-what">Valor do trabalho realmente entregue.</div><div class="ind-formula">EV = BAC × % executado</div><ul class="ind-read"><li>Conceito central do EVM: progresso em R$.</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">AC</span><span class="ind-name">Actual Cost</span></div><div class="ind-what">Quanto foi <b>realmente</b> gasto.</div><div class="ind-formula">AC = custos incorridos</div><ul class="ind-read"><li>Vem do financeiro / contabilidade.</li></ul></div>
+      </div>
+      <h4 class="ind-h">Variações — em R$</h4>
+      <div class="ind-grid">
+        <div class="ind"><div class="ind-top"><span class="ind-code">CV</span><span class="ind-name">Cost Variance</span></div><div class="ind-what">Diferença entre valor entregue e gasto.</div><div class="ind-formula">CV = EV − AC</div><ul class="ind-read"><li><b>Positivo</b> — abaixo do orçamento</li><li><b>Negativo</b> — estourando</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">SV</span><span class="ind-name">Schedule Variance</span></div><div class="ind-what">Diferença entre o entregue e o planejado.</div><div class="ind-formula">SV = EV − PV</div><ul class="ind-read"><li><b>Positivo</b> — adiantado</li><li><b>Negativo</b> — atrasado</li></ul></div>
+      </div>
+      <h4 class="ind-h">Índices de performance</h4>
+      <div class="ind-grid">
+        <div class="ind"><div class="ind-top"><span class="ind-code">CPI</span><span class="ind-name">Cost Performance Index</span></div><div class="ind-what">Eficiência de custo: valor entregue por R$ gasto.</div><div class="ind-formula">CPI = EV / AC</div><ul class="ind-read"><li><b>≥ 0,95</b> — Verde</li><li><b>0,85–0,95</b> — Amarelo</li><li><b>&lt; 0,85</b> — Vermelho</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">SPI</span><span class="ind-name">Schedule Performance Index</span></div><div class="ind-what">Eficiência de cronograma: quanto do planejado foi entregue.</div><div class="ind-formula">SPI = EV / PV</div><ul class="ind-read"><li><b>≥ 0,95</b> — Verde</li><li><b>0,85–0,95</b> — Amarelo</li><li><b>&lt; 0,85</b> — Vermelho</li></ul></div>
+      </div>
+      <h4 class="ind-h">Projeções</h4>
+      <div class="ind-grid">
+        <div class="ind"><div class="ind-top"><span class="ind-code">EAC</span><span class="ind-name">Estimate at Completion</span></div><div class="ind-what">Custo total projetado mantida a eficiência atual.</div><div class="ind-formula">EAC = BAC / CPI</div><ul class="ind-read"><li>Se EAC &gt; BAC → estouro esperado.</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">ETC</span><span class="ind-name">Estimate to Complete</span></div><div class="ind-what">Quanto ainda falta gastar.</div><div class="ind-formula">ETC = EAC − AC</div><ul class="ind-read"><li>Útil para reserva orçamentária residual.</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">VAC</span><span class="ind-name">Variance at Completion</span></div><div class="ind-what">Estouro ou economia projetado no final.</div><div class="ind-formula">VAC = BAC − EAC</div><ul class="ind-read"><li><b>Positivo</b> — economia · <b>Negativo</b> — estouro</li></ul></div>
+      </div>
+      <h4 class="ind-h">Classificação RAG</h4>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:4px">
+        <tr><td style="padding:7px;width:110px"><span class="pill green">🟢 Verde</span></td><td style="padding:7px">CPI ≥ 0,95 <b>e</b> SPI ≥ 0,95 <b>e</b> sem risco alto aberto.</td></tr>
+        <tr><td style="padding:7px"><span class="pill amber">🟡 Amarelo</span></td><td style="padding:7px">Um dos índices entre 0,85 e 0,95, <b>ou</b> risco alto aberto.</td></tr>
+        <tr><td style="padding:7px"><span class="pill red">🔴 Vermelho</span></td><td style="padding:7px">CPI &lt; 0,85 <b>ou</b> SPI &lt; 0,85 <b>ou</b> estouro confirmado.</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── WBS PAGE ───────────────────────────────────────────────────────────── -->
+<div id="page-wbs" class="page">
+  <div id="proj-selector-wrap">
+    <label for="proj-select">Projeto:</label>
+    <select id="proj-select" onchange="renderWBS()"></select>
+    <div id="wbs-legend">
+      <span class="leg-item"><span class="leg-dot" style="background:var(--blue-1)"></span>Projeto (raiz)</span>
+      <span class="leg-item"><span class="leg-dot" style="background:var(--blue-2)"></span>Fase (nível 1)</span>
+      <span class="leg-item"><span class="leg-dot" style="background:#e8eef8;border:1px solid var(--blue-3)"></span>Entregável (nível 2)</span>
+      <span class="leg-item"><span class="leg-dot" style="background:#f4f6fb;border:1px solid var(--blue-4)"></span>Pacote (nível 3)</span>
+    </div>
+  </div>
+  <div id="wbs-empty" style="color:var(--muted);font-size:13px;padding:40px 0;text-align:center;display:none">
+    Nenhum dado de WBS disponível para este projeto.
+  </div>
+  <div class="panel" style="overflow:auto">
+    <div id="wbs-tree" class="tree-wrap"></div>
+  </div>
+</div>
+
+<!-- ── TOAST ─────────────────────────────────────────────────────────────── -->
+<div id="toast"></div>
+<!-- ── FLOATING TOOLTIP ──────────────────────────────────────────────────── -->
+<div id="ftip"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════════════════════════════════════
+let STATE = { projects:[], marcos:[], riscos:[], wbs:[], fileName:'', loaded:false };
+let chartScatter = null, chartRisk = null;
+// Per-cell edits: { "CODE_FIELD": value }
+const EDITS = {};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// File loading
+// ═══════════════════════════════════════════════════════════════════════════
+function loadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  STATE.fileName = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type:'binary', cellDates:true });
+      STATE.projects = sheetToObjects(wb, 'PROJETOS',  3);
+      STATE.marcos   = sheetToObjects(wb, 'MARCOS',    3);
+      STATE.riscos   = sheetToObjects(wb, 'RISCOS',    3);
+      STATE.wbs      = sheetToObjects(wb, 'WBS',       3);
+      STATE.loaded   = true;
+      document.getElementById('fileInfo').textContent = `${file.name} · carregado ${fmtNow()}`;
+      document.getElementById('exportBtn').style.display = '';
+      document.getElementById('empty').style.display = 'none';
+      document.getElementById('tabs').style.display = '';
+      renderPanorama();
+      buildWBSSelector();
+      renderWBS();
+    } catch(err) {
+      toast('Erro ao ler o arquivo: ' + err.message, true);
+    }
+  };
+  reader.readAsBinaryString(file);
+  input.value = '';
+}
+
+function sheetToObjects(wb, name, headerRow) {
+  const ws = wb.Sheets[name];
+  if (!ws) return [];
+  // read from header row (1-indexed)
+  const data = XLSX.utils.sheet_to_json(ws, { range: headerRow - 1, defval: '' });
+  return data;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EVM calculations
+// ═══════════════════════════════════════════════════════════════════════════
+function calcEVM(p) {
+  const bac  = num(p['BAC (R$) *']);
+  const pct_pv = pct(p['% Planejado *']);
+  const pct_ev = pct(p['% Executado *']);
+  const ac   = num(p['AC (R$) *']);
+
+  const pv  = bac * pct_pv;
+  const ev  = bac * pct_ev;
+  const cv  = ev - ac;
+  const sv  = ev - pv;
+  const cpi = ac > 0 ? ev / ac : null;
+  const spi = pv > 0 ? ev / pv : null;
+  const eac = (cpi && cpi > 0) ? bac / cpi : null;
+  const etc = eac !== null ? eac - ac : null;
+  const vac = eac !== null ? bac - eac : null;
+
+  // RAG: check open high risks
+  const code = p['Código *'] || p['Código'] || '';
+  const hasHighRisk = STATE.riscos.some(r => {
+    const rc = r['Código Projeto *'] || r['Código Projeto'] || '';
+    const prob = num(r['Probabilidade\n(1–5) *'] || r['Probabilidade (1–5) *'] || r['Probabilidade\n(1â€"5) *'] || 0);
+    const imp  = num(r['Impacto\n(1–5) *'] || r['Impacto (1–5) *'] || r['Impacto\n(1â€"5) *'] || 0);
+    const score = prob * imp;
+    const status = (r['Status'] || '').toLowerCase();
+    return rc === code && score >= 15 && status !== 'fechado' && status !== 'encerrado';
+  });
+
+  let rag = 'green';
+  if (cpi !== null && cpi < 0.85) rag = 'red';
+  else if (spi !== null && spi < 0.85) rag = 'red';
+  else if (cpi !== null && cpi < 0.95) rag = 'amber';
+  else if (spi !== null && spi < 0.95) rag = 'amber';
+  else if (hasHighRisk) rag = 'amber';
+
+  return { bac, pv, ev, ac, cv, sv, cpi, spi, eac, etc, vac, rag };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Panorama render
+// ═══════════════════════════════════════════════════════════════════════════
+function renderPanorama() {
+  // KPIs
+  const evms = STATE.projects.map(p => ({ p, e: calcEVM(p) }));
+  const totalBAC  = evms.reduce((s,x) => s + x.e.bac, 0);
+  const totalAC   = evms.reduce((s,x) => s + x.e.ac,  0);
+  const totalEAC  = evms.reduce((s,x) => s + (x.e.eac || x.e.bac), 0);
+  const rags = { green: 0, amber: 0, red: 0 };
+  evms.forEach(x => rags[x.e.rag]++);
+
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi"><div class="label">Projetos ativos</div>
+      <div class="value">${evms.length}</div>
+      <div class="sub">${rags.green} verde · ${rags.amber} amarelo · ${rags.red} vermelho</div></div>
+    <div class="kpi"><div class="label">BAC total</div>
+      <div class="value">${fmtBRL(totalBAC)}</div>
+      <div class="sub">orçamento agregado das baselines</div></div>
+    <div class="kpi"><div class="label">AC acumulado</div>
+      <div class="value">${fmtBRL(totalAC)}</div>
+      <div class="sub">${totalBAC > 0 ? Math.round(totalAC/totalBAC*100) : '—'}% do BAC já gasto</div></div>
+    <div class="kpi"><div class="label">EAC projetado</div>
+      <div class="value" style="color:${totalEAC > totalBAC ? 'var(--red)' : 'var(--green)'}">${fmtBRL(totalEAC)}</div>
+      <div class="sub" style="color:${totalEAC > totalBAC ? 'var(--red)' : 'var(--green)}'}">
+        ${totalEAC > totalBAC ? '+' : ''}${fmtBRL(totalEAC - totalBAC)} vs. BAC</div></div>
+  `;
+
+  // Table rows
+  const ragLabel = { green:'🟢 Verde', amber:'🟡 Amarelo', red:'🔴 Vermelho' };
+  document.getElementById('projRows').innerHTML = evms.map(({p, e}) => {
+    const code      = p['Código *'] || p['Código'] || '';
+    const name      = p['Nome do Projeto'] || '';
+    const sponsor   = p['Sponsor'] || '';
+    const milestone = getEdit(code,'milestone') || p['Próximo Marco'] || '';
+    const mdate     = getEdit(code,'mdate')     || fmtDate(p['Data Marco']) || '';
+    const milestoneLabel = milestone + (mdate ? ` — ${mdate}` : '');
+    return `<tr>
+      <td><div class="pname">${name || editCell(code,'name',name,'Nome')}</div>
+          <div class="pcode">${code}</div></td>
+      <td>${sponsor || editCell(code,'sponsor',sponsor,'Sponsor')}</td>
+      <td><span class="pill ${e.rag}">${ragLabel[e.rag]}</span></td>
+      <td class="num ${cpiClass(e.cpi)}">${e.cpi !== null ? e.cpi.toFixed(2) : editCell(code,'cpi','','CPI')}</td>
+      <td class="num ${spiClass(e.spi)}">${e.spi !== null ? e.spi.toFixed(2) : editCell(code,'spi','','SPI')}</td>
+      <td class="num">${e.ev > 0 ? Math.round(pct(p['% Executado *'])*100)+'%' : editCell(code,'exec','','% exec')}</td>
+      <td class="num">${e.bac > 0 ? fmtBRL(e.bac) : editCell(code,'bac','','BAC')}</td>
+      <td class="num ${e.vac !== null ? (e.vac >= 0 ? 'good':'bad') : ''}">${e.vac !== null ? (e.vac >= 0?'+':'')+fmtBRL(e.vac) : '—'}</td>
+      <td>${milestoneLabel || editCell(code,'milestone',milestone,'Próximo marco')}</td>
+    </tr>`;
+  }).join('');
+
+  // Scatter chart
+  if (chartScatter) chartScatter.destroy();
+  const colorByRag = { green:'#2f7d4f', amber:'#b87a00', red:'#b3261e' };
+  chartScatter = new Chart(document.getElementById('scatterChart'), {
+    type:'scatter',
+    data:{ datasets: evms.filter(x=>x.e.cpi!==null&&x.e.spi!==null).map(({p,e}) => ({
+      label: p['Código *']||p['Código']||'',
+      data:[{x:e.spi, y:e.cpi}],
+      backgroundColor: colorByRag[e.rag],
+      borderColor: colorByRag[e.rag],
+      pointRadius:9, pointHoverRadius:12,
+    }))},
+    options:{
+      plugins:{
+        legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>{
+          const x=ctx.parsed.x.toFixed(2),y=ctx.parsed.y.toFixed(2);
+          return `${ctx.dataset.label}: SPI ${x} · CPI ${y}`;
+        }}}
+      },
+      scales:{
+        x:{title:{display:true,text:'SPI (cronograma)'},suggestedMin:.6,suggestedMax:1.2,grid:{color:'#eee'}},
+        y:{title:{display:true,text:'CPI (custo)'},suggestedMin:.6,suggestedMax:1.2,grid:{color:'#eee'}},
+      }
+    },
+    plugins:[{id:'refLines',beforeDraw(chart){
+      const {ctx,chartArea,scales}=chart;
+      const x1=scales.x.getPixelForValue(1), y1=scales.y.getPixelForValue(1);
+      ctx.save(); ctx.strokeStyle='#bbb'; ctx.setLineDash([4,4]);
+      ctx.beginPath();
+      ctx.moveTo(x1,chartArea.top);ctx.lineTo(x1,chartArea.bottom);
+      ctx.moveTo(chartArea.left,y1);ctx.lineTo(chartArea.right,y1);
+      ctx.stroke(); ctx.restore();
+    }}]
+  });
+
+  // Risk chart
+  if (chartRisk) chartRisk.destroy();
+  const rCounts = {Alto:0,Médio:0,Baixo:0};
+  STATE.riscos.forEach(r => {
+    const prob = num(r['Probabilidade\n(1–5) *']||r['Probabilidade (1–5) *']||0);
+    const imp  = num(r['Impacto\n(1–5) *']||r['Impacto (1–5) *']||0);
+    const score = prob * imp;
+    const status = (r['Status']||'').toLowerCase();
+    if (status==='fechado'||status==='encerrado') return;
+    if (score >= 15) rCounts['Alto']++;
+    else if (score >= 6) rCounts['Médio']++;
+    else if (score > 0) rCounts['Baixo']++;
+  });
+  chartRisk = new Chart(document.getElementById('riskChart'),{
+    type:'bar',
+    data:{labels:Object.keys(rCounts),datasets:[{
+      data:Object.values(rCounts),
+      backgroundColor:['#b3261e','#b87a00','#2f7d4f'],borderRadius:4,
+    }]},
+    options:{
+      plugins:{legend:{display:false}},
+      indexAxis:'y',
+      scales:{
+        x:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#eee'}},
+        y:{grid:{display:false}},
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WBS render
+// ═══════════════════════════════════════════════════════════════════════════
+function buildWBSSelector() {
+  const sel = document.getElementById('proj-select');
+  sel.innerHTML = '';
+  STATE.projects.forEach(p => {
+    const code = p['Código *']||p['Código']||'';
+    const name = p['Nome do Projeto']||code;
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = `${code} — ${name}`;
+    sel.appendChild(opt);
+  });
+}
+
+function renderWBS() {
+  const sel = document.getElementById('proj-select');
+  const code = sel.value;
+  const container = document.getElementById('wbs-tree');
+  const emptyMsg  = document.getElementById('wbs-empty');
+  container.innerHTML = '';
+
+  const items = STATE.wbs.filter(w => (w['Código Projeto *']||w['Código Projeto']||'') === code);
+  if (!items.length) {
+    emptyMsg.style.display = '';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+
+  // Build tree structure
+  // Each item: { code, level, desc, pct, children:[] }
+  const nodes = items.map(w => ({
+    wbsCode: String(w['Código WBS *']||w['Código WBS']||''),
+    level:   parseInt(w['Nível *']||w['Nível']||0),
+    desc:    w['Descrição *']||w['Descrição']||'',
+    pct:     w['% Concluído'] !== '' ? parseFloat(w['% Concluído']) : null,
+    children:[],
+  })).sort((a,b) => a.wbsCode.localeCompare(b.wbsCode, undefined, {numeric:true}));
+
+  // Build hierarchy by parent prefix matching
+  function findParent(nodes, node) {
+    const parts = node.wbsCode.split('.');
+    if (parts.length <= 1 || node.level === 0) return null;
+    parts.pop();
+    const parentCode = parts.join('.');
+    return nodes.find(n => n.wbsCode === parentCode) || null;
+  }
+  const roots = [];
+  nodes.forEach(n => {
+    const parent = findParent(nodes, n);
+    if (parent) parent.children.push(n);
+    else roots.push(n);
+  });
+
+  // Render top-down tree node as <li>
+  function renderNode(node) {
+    const li = document.createElement('li');
+
+    const box = document.createElement('div');
+    box.className = `org-node lvl-${Math.min(node.level, 3)}`;
+    box.textContent = node.desc;
+    li.appendChild(box);
+
+    if (node.children.length > 0) {
+      const btn = document.createElement('span');
+      btn.className = 'tree-toggle';
+      btn.textContent = '−';
+      btn.title = 'Expandir / recolher';
+      li.appendChild(btn);
+
+      const ul = document.createElement('ul');
+      node.children.forEach(child => ul.appendChild(renderNode(child)));
+      li.appendChild(ul);
+
+      btn.onclick = e => {
+        e.stopPropagation();
+        const hidden = ul.style.display === 'none';
+        ul.style.display = hidden ? '' : 'none';
+        btn.textContent = hidden ? '−' : '+';
+      };
+    }
+    return li;
+  }
+
+  const rootUl = document.createElement('ul');
+  rootUl.className = 'tree tree-root';
+  roots.forEach(r => rootUl.appendChild(renderNode(r)));
+  container.appendChild(rootUl);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Export
+// ═══════════════════════════════════════════════════════════════════════════
+function exportXLSX() {
+  if (!STATE.loaded) { toast('Carregue um arquivo primeiro.'); return; }
+
+  // Re-apply any inline edits back onto STATE.projects
+  STATE.projects.forEach(p => {
+    const code = p['Código *']||p['Código']||'';
+    ['name','sponsor','milestone','mdate'].forEach(field => {
+      const v = EDITS[`${code}_${field}`];
+      if (v !== undefined) {
+        const map = {name:'Nome do Projeto',sponsor:'Sponsor',milestone:'Próximo Marco',mdate:'Data Marco'};
+        p[map[field]] = v;
+      }
+    });
+  });
+
+  const wb = XLSX.utils.book_new();
+  const addSheet = (name, data, hdrRow) => {
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  };
+  addSheet('PROJETOS', STATE.projects);
+  addSheet('MARCOS',   STATE.marcos);
+  addSheet('RISCOS',   STATE.riscos);
+  addSheet('WBS',      STATE.wbs);
+
+  const ts = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `projetos-evm-${ts}.xlsx`);
+  toast('Arquivo exportado com sucesso!');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Inline edit helpers
+// ═══════════════════════════════════════════════════════════════════════════
+function editCell(code, field, current, placeholder) {
+  const key = `${code}_${field}`;
+  const val = EDITS[key] !== undefined ? EDITS[key] : (current || '');
+  return `<span contenteditable="true" data-ph="— ${placeholder}" data-key="${key}"
+    onblur="saveEdit(this)">${escHtml(val)}</span>`;
+}
+function saveEdit(el) {
+  const key = el.dataset.key;
+  EDITS[key] = el.textContent.trim();
+}
+function getEdit(code, field) {
+  return EDITS[`${code}_${field}`] || null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UI helpers
+// ═══════════════════════════════════════════════════════════════════════════
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  if (name === 'wbs') renderWBS();
+}
+
+function toggleAccordion(btn) {
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+function toast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isErr ? '#b3261e' : '#1a1a1a';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Number / format helpers
+// ═══════════════════════════════════════════════════════════════════════════
+function num(v) { return parseFloat(v) || 0; }
+function pct(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return 0;
+  return n > 1 ? n / 100 : n; // accept both 0.38 and 38
+}
+function fmtBRL(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '−' : '';
+  if (abs >= 1e6) return sign + 'R$ ' + (abs/1e6).toFixed(2) + ' M';
+  if (abs >= 1e3) return sign + 'R$ ' + Math.round(abs/1e3) + ' k';
+  return sign + 'R$ ' + abs.toFixed(0);
+}
+function fmtDate(v) {
+  if (!v) return '';
+  if (v instanceof Date) return v.toISOString().slice(0,10);
+  return String(v).slice(0,10);
+}
+function fmtNow() {
+  return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function cpiClass(v) { return v===null?'':v>=0.95?'good':v>=0.85?'warn':'bad'; }
+function spiClass(v) { return v===null?'':v>=0.95?'good':v>=0.85?'warn':'bad'; }
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Floating tooltip
+// ═══════════════════════════════════════════════════════════════════════════
+(function(){
+  const tip = document.getElementById('ftip');
+  let active = false;
+  document.querySelectorAll('[data-tip]').forEach(el => {
+    el.addEventListener('mouseenter', e => {
+      tip.textContent = el.dataset.tip;
+      tip.classList.add('on');
+      active = true;
+      move(e);
+    });
+    el.addEventListener('mousemove', move);
+    el.addEventListener('mouseleave', () => { tip.classList.remove('on'); active = false; });
+  });
+  function move(e) {
+    if (!active) return;
+    const W = tip.offsetWidth || 260, H = tip.offsetHeight || 80;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let x = e.clientX + 14, y = e.clientY - H - 10;
+    if (x + W > vw - 6) x = e.clientX - W - 14;
+    if (y < 6) y = e.clientY + 20;
+    tip.style.left = x + 'px';
+    tip.style.top  = y + 'px';
+  }
+})();
+</script>
+</body>
+</html>

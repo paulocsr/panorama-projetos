@@ -9,102 +9,145 @@
 <style>
 /* ── Reset & Variables ─────────────────────────────────────────────────── */
 :root {
-  --bg: #f7f6f3; --surface: #fff; --border: #e6e3dc; --text: #1a1a1a;
-  --muted: #6b6b6b; --accent: #2b3a55;
-  --green: #2f7d4f; --green-bg: #e3f1e8;
-  --amber: #b87a00; --amber-bg: #fbeed1;
-  --red:   #b3261e; --red-bg:   #f7dad7;
-  --blue-1: #2b3a55; --blue-2: #3b5998; --blue-3: #5b7ec1; --blue-4: #8aaee0;
-  --future-bg: #fffbeb; --future-border: #f59e0b; --future-text: #78350f;
-  --now-bg: #f0fdf4; --now-border: #16a34a; --now-text: #14532d;
+  --bg:#f7f6f3;--surface:#fff;--border:#e6e3dc;--text:#1a1a1a;
+  --muted:#6b6b6b;--accent:#2b3a55;
+  --green:#2f7d4f;--green-bg:#e3f1e8;
+  --amber:#b87a00;--amber-bg:#fbeed1;
+  --red:#b3261e;--red-bg:#f7dad7;
+  --blue-1:#2b3a55;--blue-2:#3b5998;--blue-3:#5b7ec1;--blue-4:#8aaee0;
+  --future-bg:#fffbeb;--future-border:#f59e0b;--future-text:#78350f;
+  --now-bg:#f0fdf4;--now-border:#16a34a;--now-text:#14532d;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
 
 /* ── Toolbar ─────────────────────────────────────────────────────────────── */
-#toolbar{
-  background:var(--accent);color:#fff;
-  display:flex;align-items:center;gap:12px;padding:10px 24px;
-  position:sticky;top:0;z-index:100;flex-wrap:wrap;
-}
-#toolbar .logo{font-weight:700;font-size:15px;letter-spacing:.3px;margin-right:8px}
-#toolbar .file-info{font-size:12px;opacity:.75;flex:1;min-width:140px}
-.tb-btn{
-  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-  color:#fff;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:500;
-  cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;
-  transition:background .15s;
-}
-.tb-btn:hover{background:rgba(255,255,255,.25)}
+#toolbar{background:var(--accent);color:#fff;display:flex;align-items:center;
+  gap:10px;padding:10px 20px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+#toolbar .logo{font-weight:700;font-size:15px;letter-spacing:.3px;margin-right:4px}
+#toolbar .file-info{font-size:12px;opacity:.75;flex:1;min-width:120px}
+.tb-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  color:#fff;border-radius:6px;padding:6px 13px;font-size:12px;font-weight:500;
+  cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:background .15s}
+.tb-btn:hover{background:rgba(255,255,255,.28)}
 .tb-btn svg{width:14px;height:14px;flex-shrink:0}
 #fileInput{display:none}
 
+/* ── Google Sheets panel ─────────────────────────────────────────────────── */
+#sheets-panel{
+  background:#1e2d45;border-top:1px solid rgba(255,255,255,.12);
+  padding:14px 20px;display:none;flex-wrap:wrap;gap:14px;align-items:flex-start;
+}
+#sheets-panel.open{display:flex}
+.sp-col{flex:1;min-width:240px}
+.sp-label{font-size:11px;color:rgba(255,255,255,.7);margin-bottom:6px;font-weight:500;letter-spacing:.3px;text-transform:uppercase}
+.sp-steps{font-size:12px;color:rgba(255,255,255,.65);line-height:1.7;padding-left:14px}
+.sp-steps li{margin-bottom:2px}
+.sp-steps code{background:rgba(255,255,255,.15);border-radius:3px;padding:0 5px;font-size:11px}
+.sp-input-row{display:flex;gap:8px;margin-top:10px}
+.sp-input{flex:1;border:1px solid rgba(255,255,255,.3);border-radius:6px;
+  background:rgba(255,255,255,.1);color:#fff;padding:7px 11px;font-size:12px;outline:none}
+.sp-input::placeholder{color:rgba(255,255,255,.4)}
+.sp-input:focus{border-color:rgba(255,255,255,.6)}
+.sp-load-btn{background:#fff;color:var(--accent);border:none;border-radius:6px;
+  padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.sp-load-btn:hover{opacity:.88}
+.sp-note{font-size:11px;color:rgba(255,255,255,.5);margin-top:8px;line-height:1.5}
+.sp-status{font-size:12px;margin-top:8px}
+.sp-status.ok{color:#86efac}
+.sp-status.err{color:#fca5a5}
+
 /* ── Tabs ────────────────────────────────────────────────────────────────── */
-#tabs{
-  display:flex;gap:0;border-bottom:2px solid var(--border);
-  background:var(--surface);padding:0 24px;overflow-x:auto;
-}
-.tab{
-  padding:12px 20px;font-size:13px;font-weight:500;color:var(--muted);
-  cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;
-  transition:all .15s;white-space:nowrap;
-}
+#tabs{display:flex;border-bottom:2px solid var(--border);background:var(--surface);
+  padding:0 24px;overflow-x:auto}
+.tab{padding:12px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap}
 .tab:hover{color:var(--text)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* ── Layout ──────────────────────────────────────────────────────────────── */
-.page{display:none;padding:28px 28px 48px;max-width:1400px;margin:0 auto}
+.page{display:none;padding:24px 24px 48px;max-width:1440px;margin:0 auto}
 .page.active{display:block}
-
-/* ── Empty state ─────────────────────────────────────────────────────────── */
-#empty{
-  text-align:center;padding:80px 24px;
-  display:flex;flex-direction:column;align-items:center;gap:16px;
-}
+#empty{text-align:center;padding:80px 24px;display:flex;flex-direction:column;align-items:center;gap:16px}
 #empty .icon{font-size:48px}
 #empty h2{font-size:20px;color:var(--accent)}
 #empty p{color:var(--muted);max-width:480px;font-size:14px}
-.upload-big{
-  background:var(--accent);color:#fff;border:none;border-radius:8px;
-  padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;
-  margin-top:8px;transition:opacity .15s;
-}
+.upload-big{background:var(--accent);color:#fff;border:none;border-radius:8px;
+  padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;transition:opacity .15s}
 .upload-big:hover{opacity:.88}
 
 /* ── KPI cards ───────────────────────────────────────────────────────────── */
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
 .kpi .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.kpi .value{font-size:26px;font-weight:700;margin-top:5px}
+.kpi .value{font-size:24px;font-weight:700;margin-top:4px}
 .kpi .sub{font-size:11px;color:var(--muted);margin-top:3px}
 
 /* ── Panel ───────────────────────────────────────────────────────────────── */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:18px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
 .panel-title{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:10px}
-.two-col{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:18px}
+.two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:16px}
 canvas{max-height:300px}
 .chart-note{font-size:11px;color:var(--muted);margin-top:8px}
 
 /* ── Projects table ──────────────────────────────────────────────────────── */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-weight:500;color:var(--muted);padding:10px 8px;
+th{text-align:left;font-weight:500;color:var(--muted);padding:9px 8px;
   border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;
   letter-spacing:.4px;white-space:nowrap}
-td{padding:11px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:0}
 tr:hover td{background:#fafaf7}
 .pname{font-weight:500}
 .pcode{font-size:11px;color:var(--muted)}
 
 /* ── Pills ───────────────────────────────────────────────────────────────── */
-.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:500}
 .pill.green{background:var(--green-bg);color:var(--green)}
 .pill.amber{background:var(--amber-bg);color:var(--amber)}
 .pill.red{background:var(--red-bg);color:var(--red)}
 .pill.v2{background:#fef3c7;color:#92400e;font-size:10px;padding:2px 7px}
 .pill.now{background:#dcfce7;color:#166534;font-size:10px;padding:2px 7px}
+
+/* ── RAG Legend ──────────────────────────────────────────────────────────── */
+.rag-legend{display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+  padding:8px 14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;margin-bottom:10px;font-size:12px}
+.rag-legend-title{font-weight:600;color:var(--muted);text-transform:uppercase;
+  font-size:11px;letter-spacing:.4px;margin-right:4px}
+.rag-legend-note{font-size:11px;color:var(--muted);margin-left:auto}
+.rag-item{position:relative;padding:3px 10px;border-radius:6px;
+  cursor:default;font-weight:500;font-size:12px}
+.rag-item.green{background:var(--green-bg);color:var(--green)}
+.rag-item.amber{background:var(--amber-bg);color:var(--amber)}
+.rag-item.red{background:var(--red-bg);color:var(--red)}
+.rag-tip{display:none;position:absolute;top:calc(100% + 6px);left:0;
+  background:#1a1a1a;color:#fff;padding:7px 11px;border-radius:6px;
+  font-size:12px;font-weight:400;white-space:nowrap;z-index:200;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);pointer-events:none}
+.rag-item:hover .rag-tip{display:block}
+
+/* ── Expandable project rows ─────────────────────────────────────────────── */
+tr.expandable{cursor:pointer}
+tr.expandable:hover{background:#f0f4f8}
+.expand-icon{font-size:10px;color:var(--muted);display:inline-block;
+  transition:transform .2s;margin-right:2px;user-select:none}
+.expand-icon.open{transform:rotate(90deg)}
+.wbs-detail-row td{padding:0;background:#f7f9fc;border-bottom:2px solid var(--border)}
+.wbs-detail-inner{padding:10px 16px 14px}
+.wbs-detail-inner table{width:100%;border-collapse:collapse;font-size:12px}
+.wbs-detail-inner th{text-align:left;font-size:11px;color:var(--muted);font-weight:600;
+  padding:4px 8px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.3px}
+.wbs-detail-inner td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top}
+.wbs-detail-inner tr:last-child td{border-bottom:none}
+.wbs-lvl-0{font-weight:700;color:var(--accent);background:#eef2f8}
+.wbs-lvl-1{font-weight:600}
+.wbs-lvl-2{color:var(--muted)}
+.wbs-indent{display:inline-block}
+.wbs-marco-row{background:#eef2ff;border-top:1px solid #c7d2fe;border-bottom:1px solid #c7d2fe}
+.wbs-marco-row td{padding:7px 8px}
 
 /* ── Numbers ─────────────────────────────────────────────────────────────── */
 .num{font-variant-numeric:tabular-nums;font-weight:500}
@@ -113,140 +156,83 @@ tr:hover td{background:#fafaf7}
 .num.warn{color:var(--amber)}
 
 /* ── Editable cells ──────────────────────────────────────────────────────── */
-[contenteditable="true"]{
-  outline:none;border-bottom:1px dashed var(--amber);
-  padding-bottom:1px;cursor:text;min-width:60px;display:inline-block;
-}
-[contenteditable="true"]:empty::before{
-  content:attr(data-ph);color:#ccc;font-style:italic;font-size:12px;
-}
+[contenteditable="true"]{outline:none;border-bottom:1px dashed var(--amber);
+  padding-bottom:1px;cursor:text;min-width:60px;display:inline-block}
+[contenteditable="true"]:empty::before{content:attr(data-ph);color:#ccc;font-style:italic;font-size:12px}
 [contenteditable="true"]:focus{border-bottom-color:var(--accent);background:#fffaeb}
 
-/* ── Accordion / Glossary ────────────────────────────────────────────────── */
-.accordion-btn{
-  width:100%;background:none;border:none;text-align:left;padding:12px 0;
-  font-size:14px;font-weight:600;cursor:pointer;display:flex;
-  justify-content:space-between;align-items:center;color:var(--text);
-}
+/* ── Accordion ───────────────────────────────────────────────────────────── */
+.accordion-btn{width:100%;background:none;border:none;text-align:left;padding:12px 0;
+  font-size:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;color:var(--text)}
 .accordion-btn::after{content:"▸";transition:transform .2s}
 .accordion-btn.open::after{transform:rotate(90deg)}
 .accordion-body{display:none;padding-top:8px}
 .accordion-body.open{display:block}
-.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
-.ind{background:#fafaf7;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
-.ind-top{display:flex;align-items:baseline;gap:10px;margin-bottom:5px}
-.ind-code{font-weight:700;font-size:15px;color:var(--accent)}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:10px}
+.ind{background:#fafaf7;border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.ind-top{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.ind-code{font-weight:700;font-size:14px;color:var(--accent)}
 .ind-name{font-size:11px;color:var(--muted)}
-.ind-what{font-size:12px;color:var(--text);margin-bottom:8px}
+.ind-what{font-size:12px;margin-bottom:6px}
 .ind-formula{font-family:ui-monospace,monospace;font-size:11px;background:#f0eee8;
-  padding:3px 7px;border-radius:5px;display:inline-block;margin-bottom:6px}
+  padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:5px}
 .ind-read{padding-left:14px;font-size:11px;color:var(--muted);line-height:1.7}
 .ind-read b{color:var(--text);font-weight:500}
 h4.ind-h{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.6px;margin:20px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+  letter-spacing:.6px;margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
 h4.ind-h:first-of-type{margin-top:6px}
 
 /* ── Tooltips ────────────────────────────────────────────────────────────── */
 .tip{cursor:help;border-bottom:1px dotted var(--muted);display:inline-block}
-#ftip{
-  position:fixed;background:#1c2333;color:#fff;padding:9px 13px;border-radius:7px;
+#ftip{position:fixed;background:#1c2333;color:#fff;padding:9px 13px;border-radius:7px;
   font-size:12px;line-height:1.55;max-width:280px;white-space:normal;
   pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;
-  text-transform:none;letter-spacing:0;font-weight:400;
-}
+  text-transform:none;letter-spacing:0;font-weight:400}
 #ftip.on{opacity:1}
 
-/* ── WBS ─────────────────────────────────────────────────────────────────── */
-#proj-selector-wrap{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
-#proj-selector-wrap label{font-weight:500;font-size:13px;color:var(--muted)}
-#proj-select{
-  border:1px solid var(--border);border-radius:8px;padding:7px 12px;
-  font-size:13px;background:var(--surface);color:var(--text);cursor:pointer;
+/* ══ Risk Heat Map ═══════════════════════════════════════════════════════════ */
+.hm-wrap{user-select:none}
+.hm-axis-title{font-size:11px;color:var(--muted);text-align:center;margin-bottom:6px;letter-spacing:.3px}
+.hm-body{display:flex;gap:6px;align-items:stretch}
+.hm-y-axis{display:flex;flex-direction:column;justify-content:space-between;padding:0 4px 30px 0;align-items:flex-end}
+.hm-y-tick{font-size:11px;color:var(--muted);font-weight:600;height:54px;display:flex;align-items:center}
+.hm-grid-col{flex:1}
+.hm-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+.hm-cell{
+  height:54px;border-radius:5px;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:center;gap:3px;padding:3px;
+  position:relative;cursor:default;transition:filter .15s;
 }
-#wbs-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-left:auto}
-.leg-item{display:flex;align-items:center;gap:5px}
-.leg-dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+.hm-cell:hover{filter:brightness(.93)}
+.hm-cell.hm-low{background:#e3f1e8}
+.hm-cell.hm-medium{background:#fbeed1}
+.hm-cell.hm-high{background:#f7dad7}
+.hm-cell.hm-critical{background:#d94c44}
+.hm-score{position:absolute;bottom:2px;right:4px;font-size:9px;color:rgba(0,0,0,.28);font-weight:600}
+.hm-x-row{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:4px}
+.hm-x-tick{font-size:11px;color:var(--muted);font-weight:600;text-align:center}
+.hm-x-label,.hm-y-label-text{font-size:11px;color:var(--muted);text-align:center;margin-top:2px}
+.risk-chip{
+  background:rgba(0,0,0,.48);color:#fff;border-radius:4px;
+  padding:1px 5px;font-size:10px;font-weight:700;
+  cursor:default;white-space:nowrap;max-width:52px;overflow:hidden;text-overflow:ellipsis;
+}
+.risk-chip.chip-high{background:#b3261e}
+.risk-chip.chip-medium{background:#b87a00}
+.risk-chip.chip-low{background:#2f7d4f}
+.hm-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.hm-leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.hm-leg-dot{width:12px;height:12px;border-radius:3px}
 
-/* ── Top-down Tree ───────────────────────────────────────────────────────── */
-.tree-wrap{overflow:auto;padding:24px 20px 32px;text-align:center}
-.tree,.tree ul{list-style:none;margin:0;padding:0;display:flex;justify-content:center}
-.tree ul{padding-top:28px;position:relative}
-.tree ul::before{
-  content:'';position:absolute;top:0;left:50%;
-  border-left:2px solid #ccc;width:0;height:28px;
-}
-.tree li{
-  display:inline-flex;flex-direction:column;align-items:center;
-  text-align:center;position:relative;padding:28px 10px 0;
-}
-.tree li::before{
-  content:'';position:absolute;top:0;right:50%;
-  border-top:2px solid #ccc;width:50%;height:28px;
-}
-.tree li::after{
-  content:'';position:absolute;top:0;left:50%;
-  border-left:2px solid #ccc;width:50%;height:28px;
-  border-top:2px solid #ccc;
-}
-.tree li:only-child::before,.tree li:only-child::after{display:none}
-.tree li:only-child{padding-top:0}
-.tree li:first-child::before{border:0 none}
-.tree li:first-child::after{border-radius:6px 0 0 0}
-.tree li:last-child::before{border-right:2px solid #ccc;border-radius:0 6px 0 0}
-.tree li:last-child::after{border:0 none}
-/* Root ul: no parent stem and no horizontal connectors between root-level siblings */
-ul.tree-root{display:inline-flex}
-ul.tree-root::before{display:none!important}
-ul.tree-root>li{padding-top:0}
-ul.tree-root>li::before,ul.tree-root>li::after{display:none}
-.org-node{
-  border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;
-  text-align:center;user-select:none;min-width:110px;max-width:160px;
-  word-break:break-word;border:2px solid transparent;
-  transition:box-shadow .15s;position:relative;display:inline-block;
-}
-.org-node:hover{box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.tree-toggle{
-  display:block;margin:4px auto 0;
-  background:#fff;border:1px solid #bbb;border-radius:50%;
-  width:18px;height:18px;font-size:10px;line-height:17px;
-  text-align:center;cursor:pointer;color:#777;transition:background .12s;
-}
-.tree-toggle:hover{background:#f0f0f0}
-.lvl-0{background:var(--blue-1);color:#fff;border-color:var(--blue-1);font-size:13px;font-weight:700;padding:10px 18px}
-.lvl-1{background:var(--blue-2);color:#fff;border-color:var(--blue-2)}
-.lvl-2{background:#e8eef8;color:#1a1a1a;border-color:var(--blue-3)}
-.lvl-3{background:#f4f6fb;color:#1a1a1a;border-color:var(--blue-4)}
-
-/* ── Risk badges ─────────────────────────────────────────────────────────── */
+/* ── Risk detail table ───────────────────────────────────────────────────── */
 .risk-sev{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600}
 .sev-alto{background:var(--red-bg);color:var(--red)}
 .sev-medio{background:var(--amber-bg);color:var(--amber)}
 .sev-baixo{background:var(--green-bg);color:var(--green)}
 
-/* ── Future / disabled section ───────────────────────────────────────────── */
-.panel-future{
-  background:var(--future-bg);border:1px dashed var(--future-border);
-  border-radius:12px;padding:22px;margin-bottom:18px;opacity:.85;
-}
-.panel-future .panel-title{color:var(--future-text)}
-.future-intro{
-  font-size:13px;color:var(--future-text);
-  background:rgba(245,158,11,.1);border-radius:8px;
-  padding:12px 16px;margin-bottom:16px;line-height:1.6;
-}
-.future-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.future-metric{
-  background:#fff;border:1px solid #fed7aa;border-radius:10px;
-  padding:16px;opacity:.6;pointer-events:none;user-select:none;
-}
-.future-metric .fm-icon{font-size:22px;margin-bottom:6px}
-.future-metric .fm-title{font-size:12px;font-weight:600;color:var(--future-text);margin-bottom:4px}
-.future-metric .fm-value{font-size:22px;font-weight:700;color:#ccc;margin-bottom:4px}
-.future-metric .fm-why{font-size:11px;color:#a07000;line-height:1.5}
-
-/* ── Quality & Scope section ─────────────────────────────────────────────── */
-.quality-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+/* ── Quality & Scope ─────────────────────────────────────────────────────── */
+.quality-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:18px}
 .q-card{background:var(--now-bg);border:1px solid var(--now-border);border-radius:10px;padding:14px 16px}
 .q-card .q-label{font-size:11px;color:var(--now-text);text-transform:uppercase;letter-spacing:.4px}
 .q-card .q-value{font-size:22px;font-weight:700;color:var(--now-text);margin-top:4px}
@@ -256,16 +242,67 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
 .cr-pendente{background:#fef9c3;color:#713f12}
 .cr-rejeitada{background:#fee2e2;color:#991b1b}
 
-/* ── Sentiment ───────────────────────────────────────────────────────────── */
-.sent-emoji{font-size:16px}
-.sent-score{font-size:12px;font-weight:600}
+/* ── Future panel ────────────────────────────────────────────────────────── */
+.panel-future{background:var(--future-bg);border:1px dashed var(--future-border);
+  border-radius:12px;padding:20px;margin-bottom:16px}
+.future-intro{font-size:13px;color:var(--future-text);background:rgba(245,158,11,.1);
+  border-radius:8px;padding:12px 15px;margin-bottom:14px;line-height:1.6}
+.future-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:10px}
+.future-metric{background:#fff;border:1px solid #fed7aa;border-radius:10px;
+  padding:14px;opacity:.62;pointer-events:none;user-select:none}
+.future-metric .fm-icon{font-size:20px;margin-bottom:5px}
+.future-metric .fm-title{font-size:12px;font-weight:600;color:var(--future-text);margin-bottom:3px}
+.future-metric .fm-value{font-size:20px;font-weight:700;color:#ccc;margin-bottom:3px}
+.future-metric .fm-why{font-size:11px;color:#a07000;line-height:1.5}
+
+/* ── Sent (minimal, for table column only) ───────────────────────────────── */
+.sent-emoji{font-size:15px}
+
+/* ── WBS ─────────────────────────────────────────────────────────────────── */
+#proj-selector-wrap{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+#proj-selector-wrap label{font-weight:500;font-size:13px;color:var(--muted)}
+#proj-select{border:1px solid var(--border);border-radius:8px;padding:7px 12px;
+  font-size:13px;background:var(--surface);color:var(--text);cursor:pointer}
+#wbs-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-left:auto}
+.leg-item{display:flex;align-items:center;gap:5px}
+.leg-dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tree-wrap{overflow:auto;padding:22px 16px 28px;text-align:center}
+.tree,.tree ul{list-style:none;margin:0;padding:0;display:flex;justify-content:center}
+.tree ul{padding-top:28px;position:relative}
+.tree ul::before{content:'';position:absolute;top:0;left:50%;border-left:2px solid #ccc;width:0;height:28px}
+.tree li{display:inline-flex;flex-direction:column;align-items:center;
+  text-align:center;position:relative;padding:28px 10px 0}
+.tree li::before{content:'';position:absolute;top:0;right:50%;border-top:2px solid #ccc;width:50%;height:28px}
+.tree li::after{content:'';position:absolute;top:0;left:50%;border-left:2px solid #ccc;
+  width:50%;height:28px;border-top:2px solid #ccc}
+.tree li:only-child::before,.tree li:only-child::after{display:none}
+.tree li:only-child{padding-top:0}
+.tree li:first-child::before{border:0 none}
+.tree li:first-child::after{border-radius:6px 0 0 0}
+.tree li:last-child::before{border-right:2px solid #ccc;border-radius:0 6px 0 0}
+.tree li:last-child::after{border:0 none}
+ul.tree-root{display:inline-flex}
+ul.tree-root::before{display:none!important}
+ul.tree-root>li{padding-top:0}
+ul.tree-root>li::before,ul.tree-root>li::after{display:none}
+.org-node{border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;
+  text-align:center;user-select:none;min-width:110px;max-width:160px;
+  word-break:break-word;border:2px solid transparent;transition:box-shadow .15s;
+  position:relative;display:inline-block}
+.org-node:hover{box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.tree-toggle{display:block;margin:4px auto 0;background:#fff;border:1px solid #bbb;
+  border-radius:50%;width:18px;height:18px;font-size:10px;line-height:17px;
+  text-align:center;cursor:pointer;color:#777;transition:background .12s}
+.tree-toggle:hover{background:#f0f0f0}
+.lvl-0{background:var(--blue-1);color:#fff;border-color:var(--blue-1);font-size:13px;font-weight:700;padding:10px 18px}
+.lvl-1{background:var(--blue-2);color:#fff;border-color:var(--blue-2)}
+.lvl-2{background:#e8eef8;color:#1a1a1a;border-color:var(--blue-3)}
+.lvl-3{background:#f4f6fb;color:#1a1a1a;border-color:var(--blue-4)}
 
 /* ── Toast ───────────────────────────────────────────────────────────────── */
-#toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);
   background:#1a1a1a;color:#fff;padding:9px 20px;border-radius:8px;
-  font-size:13px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;
-}
+  font-size:13px;opacity:0;transition:all .3s;z-index:999;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
@@ -273,28 +310,65 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
 
 <!-- ── TOOLBAR ──────────────────────────────────────────────────────────── -->
 <div id="toolbar">
-  <span class="logo">📊 Panorama EVM <span style="font-size:10px;opacity:.6;font-weight:400">v2</span></span>
+  <span class="logo">📊 Panorama EVM <span style="font-size:10px;opacity:.5;font-weight:400">v2</span></span>
   <span class="file-info" id="fileInfo">Nenhum arquivo carregado</span>
+
   <button class="tb-btn" onclick="document.getElementById('fileInput').click()">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M2 10v3h12v-3M8 2v8M5 5l3-3 3 3"/>
-    </svg>
-    Carregar .xlsx
+    </svg>Carregar .xlsx
   </button>
+
+  <button class="tb-btn" onclick="toggleSheetsPanel()" title="Conectar Google Planilhas">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="2" y="2" width="12" height="12" rx="2"/><path d="M6 2v12M2 6h12M2 10h12"/>
+    </svg>Google Planilhas
+  </button>
+
+  <button class="tb-btn" id="refreshBtn" onclick="refreshData()" style="display:none" title="Recarregar dados da fonte atual">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M13.5 8A5.5 5.5 0 1 1 10 3.07M13.5 2v4h-4"/>
+    </svg>Atualizar
+  </button>
+
   <button class="tb-btn" id="exportBtn" onclick="exportXLSX()" style="display:none">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M2 10v3h12v-3M8 10V2M5 7l3 3 3-3"/>
-    </svg>
-    Exportar .xlsx
+    </svg>Exportar .xlsx
   </button>
+
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="loadFile(this)">
+</div>
+
+<!-- ── GOOGLE SHEETS PANEL ───────────────────────────────────────────────── -->
+<div id="sheets-panel">
+  <div class="sp-col">
+    <div class="sp-label">Como conectar sua planilha Google</div>
+    <ol class="sp-steps">
+      <li>Abra sua Google Planilha e clique em <strong>Compartilhar</strong> (botão azul, canto superior direito)</li>
+      <li>Em "Acesso geral", selecione <strong>Qualquer pessoa com o link → Leitor</strong></li>
+      <li>Copie o <strong>ID ou a URL</strong> da planilha da barra do browser:<br>
+        <code>docs.google.com/spreadsheets/d/<u>ID_AQUI</u>/edit</code></li>
+    </ol>
+    <p class="sp-note">✅ Não é necessário "Publicar na web". Basta compartilhar o link. Apenas você pode editar — o compartilhamento dá somente acesso de leitura.</p>
+  </div>
+  <div class="sp-col">
+    <div class="sp-label">ID da planilha</div>
+    <div class="sp-input-row">
+      <input class="sp-input" id="sheetIdInput" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+      <button class="sp-load-btn" onclick="loadFromSheets()">Carregar</button>
+    </div>
+    <div id="sheetsStatus" class="sp-status"></div>
+    <p class="sp-note" style="margin-top:12px">
+      <strong>Sobre autenticação:</strong> este modo usa a planilha publicada publicamente (somente leitura). Para acesso autenticado com login Google e planilha privada, o próximo passo é a <strong>v2 com Supabase</strong> — que terá login próprio e dados 100% privados.
+    </p>
+  </div>
 </div>
 
 <!-- ── TABS ─────────────────────────────────────────────────────────────── -->
 <div id="tabs" style="display:none">
   <div class="tab active" onclick="switchTab('panorama',this)">Panorama EVM</div>
   <div class="tab" onclick="switchTab('escopo',this)">Escopo &amp; Qualidade</div>
-  <div class="tab" onclick="switchTab('sentimento',this)">Sentimento do Time</div>
   <div class="tab" onclick="switchTab('wbs',this)">WBS</div>
 </div>
 
@@ -302,7 +376,7 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
 <div id="empty">
   <div class="icon">📂</div>
   <h2>Carregue sua planilha para começar</h2>
-  <p>Use o arquivo <strong>projetos-evm-v2.xlsx</strong> como modelo. Esta versão inclui campos de qualidade, mudanças de escopo e sentimento do time.</p>
+  <p>Use <strong>projetos-evm-v2.xlsx</strong> ou conecte sua Google Planilha pelo botão acima.</p>
   <button class="upload-big" onclick="document.getElementById('fileInput').click()">Carregar projetos-evm-v2.xlsx</button>
 </div>
 
@@ -313,6 +387,24 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
 
   <div class="kpi-row" id="kpiRow"></div>
 
+  <!-- RAG Legend -->
+  <div class="rag-legend">
+    <span class="rag-legend-title">Critérios de Status</span>
+    <span class="rag-item green">
+      🟢 Verde
+      <span class="rag-tip">CPI ≥ 0,95 <strong>e</strong> SPI ≥ 0,95 <strong>e</strong> sem risco aberto com score ≥ 15</span>
+    </span>
+    <span class="rag-item amber">
+      🟡 Amarelo
+      <span class="rag-tip">CPI entre 0,85–0,95 <strong>ou</strong> SPI entre 0,85–0,95 <strong>ou</strong> risco aberto com score ≥ 15</span>
+    </span>
+    <span class="rag-item red">
+      🔴 Vermelho
+      <span class="rag-tip">CPI &lt; 0,85 <strong>ou</strong> SPI &lt; 0,85 <strong>ou</strong> estouro confirmado de orçamento/prazo</span>
+    </span>
+    <span class="rag-legend-note">Score de risco = Probabilidade × Impacto (1–5 cada)</span>
+  </div>
+
   <!-- Projects table -->
   <div class="panel">
     <div class="panel-title">Projetos</div>
@@ -320,16 +412,15 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
       <table id="projTable">
         <thead><tr>
           <th>Projeto</th>
+          <th><span class="tip" data-tip="Percentual executado até a data de corte. Calcula o Earned Value: EV = BAC × % Executado.">% Exec</span></th>
+          <th><span class="tip" data-tip="Status de saúde do projeto (Red / Amber / Green). Verde: CPI ≥ 0,95 e SPI ≥ 0,95 sem risco alto. Amarelo: índice 0,85–0,95 ou risco alto aberto. Vermelho: CPI ou SPI < 0,85 ou estouro confirmado.">Status</span></th>
+          <th><span class="tip" data-tip="Cost Performance Index — eficiência de custo. Fórmula: EV ÷ AC. ≥ 1,00 = abaixo do orçamento. < 0,85 = zona crítica.">CPI</span></th>
+          <th><span class="tip" data-tip="Schedule Performance Index — eficiência de cronograma. Fórmula: EV ÷ PV. ≥ 1,00 = adiantado. < 0,85 = atraso crítico.">SPI</span></th>
+          <th><span class="tip" data-tip="Earned Value — valor monetário do trabalho realmente entregue. Fórmula: EV = BAC × % Executado. Este é o número central do EVM: transforma progresso físico em R$.">EV</span></th>
+          <th><span class="tip" data-tip="Budget at Completion — orçamento total aprovado (baseline). Não altera sem CR formal.">BAC</span></th>
+          <th><span class="tip" data-tip="Variance at Completion — estouro ou economia projetada no final. Fórmula: BAC − EAC. Positivo = economia. Negativo = estouro.">VAC</span></th>
           <th>Sponsor</th>
-          <th><span class="tip" data-tip="Red / Amber / Green — semáforo de saúde do projeto. Verde: CPI ≥ 0,95 e SPI ≥ 0,95. Amarelo: algum índice entre 0,85–0,95 ou risco alto aberto. Vermelho: CPI ou SPI abaixo de 0,85, ou estouro confirmado.">RAG</span></th>
-          <th><span class="tip" data-tip="Cost Performance Index — eficiência de custo. Fórmula: EV ÷ AC. Acima de 1,00 = cada R$ gasto entrega mais de R$ 1 de valor. Abaixo de 0,85 = zona crítica (vermelho).">CPI</span></th>
-          <th><span class="tip" data-tip="Schedule Performance Index — eficiência de cronograma. Fórmula: EV ÷ PV. Acima de 1,00 = adiantado. Abaixo de 0,85 = atraso crítico (vermelho).">SPI</span></th>
-          <th><span class="tip" data-tip="Percentual do escopo total concluído até a data de corte. Usado para calcular o Earned Value: EV = BAC × % Executado.">% Exec</span></th>
-          <th><span class="tip" data-tip="Budget at Completion — orçamento total aprovado. Não deve mudar sem uma mudança formal de escopo (CR).">BAC</span></th>
-          <th><span class="tip" data-tip="Variance at Completion — estouro ou economia projetada. Fórmula: BAC − EAC. Positivo = economia. Negativo = estouro.">VAC</span></th>
-          <th><span class="tip" data-tip="[AGORA] Custo do retrabalho registrado. Métrica de qualidade: quanto do custo real foi gasto desfazendo e refazendo trabalho. Custo da Qualidade = Retrabalho / AC.">Retrabalho</span></th>
-          <th><span class="tip" data-tip="[AGORA] Última nota de satisfação do time (1–10), coletada na aba SENTIMENTO. 🟢 ≥ 7 · 🟡 5–6 · 🔴 ≤ 4">Sentimento</span></th>
-          <th><span class="tip" data-tip="[AGORA] Número de Change Requests (mudanças de escopo) registradas na aba MUDANCAS_ESCOPO. Indica pressão de escopo no projeto.">CRs</span></th>
+          <th><span class="tip" data-tip="[AGORA] Última nota de satisfação do time (1–10). 🟢 ≥ 7 · 🟡 5–6 · 🔴 ≤ 4">Sent.</span></th>
           <th>Próximo Marco</th>
         </tr></thead>
         <tbody id="projRows"></tbody>
@@ -337,59 +428,78 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
     </div>
   </div>
 
-  <!-- Charts -->
+  <!-- Charts row: CPI×SPI scatter + Risk Heat Map -->
   <div class="two-col">
     <div class="panel">
-      <div class="panel-title"><span class="tip" style="border-bottom:none;cursor:help" data-tip="Gráfico de dispersão que mostra a posição de cada projeto em dois eixos: SPI (cronograma) no X e CPI (custo) no Y. Quadrante superior-direito = dentro do prazo e orçamento; inferior-esquerdo = atrasado e estourando custo.">CPI × SPI ⓘ</span></div>
+      <div class="panel-title">
+        <span class="tip" style="border-bottom:none;cursor:help"
+          data-tip="Cada projeto aparece como ponto. SPI (cronograma) no eixo X, CPI (custo) no eixo Y. Quadrante superior-direito = saudável. Inferior-esquerdo = atrasado e estourando.">CPI × SPI ⓘ</span>
+      </div>
       <canvas id="scatterChart"></canvas>
-      <div class="chart-note">Quadrante ideal: canto superior-direito (CPI ≥ 1 e SPI ≥ 1).</div>
+      <div class="chart-note">Quadrante ideal: superior-direito (CPI ≥ 1 e SPI ≥ 1).</div>
     </div>
     <div class="panel">
-      <div class="panel-title">Riscos abertos por severidade</div>
-      <canvas id="riskChart"></canvas>
-      <div class="chart-note">Soma de riscos abertos em todos os projetos.</div>
+      <div class="panel-title">Matriz de Riscos — P × I <span style="font-size:11px;color:var(--muted);font-weight:400">(padrão PMI)</span></div>
+      <div id="heatmap-container"></div>
     </div>
   </div>
 
-  <!-- Glossary -->
+  <!-- Risk detail table -->
   <div class="panel">
-    <button class="accordion-btn" onclick="toggleAccordion(this)">Como interpretar os indicadores</button>
-    <div class="accordion-body">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:4px">
-        Quatro <b>valores base</b> alimentam todo o EVM. A partir deles derivam as <b>variações</b>, os <b>índices de performance</b> e as <b>projeções</b>.
-      </p>
-      <h4 class="ind-h">Valores base — em R$</h4>
-      <div class="ind-grid">
-        <div class="ind"><div class="ind-top"><span class="ind-code">BAC</span><span class="ind-name">Budget at Completion</span></div><div class="ind-what">Orçamento total aprovado.</div><div class="ind-formula">BAC = linha de base</div><ul class="ind-read"><li>Não muda sem CR formal.</li></ul></div>
-        <div class="ind"><div class="ind-top"><span class="ind-code">PV</span><span class="ind-name">Planned Value</span></div><div class="ind-what">Quanto <b>deveria</b> estar gasto até hoje.</div><div class="ind-formula">PV = BAC × % planejado</div><ul class="ind-read"><li>Curva esperada de consumo.</li></ul></div>
-        <div class="ind"><div class="ind-top"><span class="ind-code">EV</span><span class="ind-name">Earned Value</span></div><div class="ind-what">Valor do trabalho realmente entregue.</div><div class="ind-formula">EV = BAC × % executado</div><ul class="ind-read"><li>Conceito central do EVM: progresso em R$.</li></ul></div>
-        <div class="ind"><div class="ind-top"><span class="ind-code">AC</span><span class="ind-name">Actual Cost</span></div><div class="ind-what">Quanto foi <b>realmente</b> gasto.</div><div class="ind-formula">AC = custos incorridos</div><ul class="ind-read"><li>Vem do financeiro / contabilidade.</li></ul></div>
-      </div>
-      <h4 class="ind-h">Variações — em R$</h4>
-      <div class="ind-grid">
-        <div class="ind"><div class="ind-top"><span class="ind-code">CV</span><span class="ind-name">Cost Variance</span></div><div class="ind-what">Diferença entre valor entregue e gasto.</div><div class="ind-formula">CV = EV − AC</div><ul class="ind-read"><li><b>Positivo</b> — abaixo do orçamento</li><li><b>Negativo</b> — estourando</li></ul></div>
-        <div class="ind"><div class="ind-top"><span class="ind-code">SV</span><span class="ind-name">Schedule Variance</span></div><div class="ind-what">Diferença entre o entregue e o planejado.</div><div class="ind-formula">SV = EV − PV</div><ul class="ind-read"><li><b>Positivo</b> — adiantado</li><li><b>Negativo</b> — atrasado</li></ul></div>
-      </div>
-      <h4 class="ind-h">Índices de performance</h4>
-      <div class="ind-grid">
-        <div class="ind"><div class="ind-top"><span class="ind-code">CPI</span><span class="ind-name">Cost Performance Index</span></div><div class="ind-what">Eficiência de custo.</div><div class="ind-formula">CPI = EV / AC</div><ul class="ind-read"><li><b>≥ 0,95</b> — Verde · <b>0,85–0,95</b> — Amarelo · <b>&lt; 0,85</b> — Vermelho</li></ul></div>
-        <div class="ind"><div class="ind-top"><span class="ind-code">SPI</span><span class="ind-name">Schedule Performance Index</span></div><div class="ind-what">Eficiência de cronograma.</div><div class="ind-formula">SPI = EV / PV</div><ul class="ind-read"><li><b>≥ 0,95</b> — Verde · <b>0,85–0,95</b> — Amarelo · <b>&lt; 0,85</b> — Vermelho</li></ul></div>
-      </div>
-      <h4 class="ind-h">Projeções</h4>
-      <div class="ind-grid">
-        <div class="ind"><div class="ind-top"><span class="ind-code">EAC</span><span class="ind-name">Estimate at Completion</span></div><div class="ind-what">Custo total projetado.</div><div class="ind-formula">EAC = BAC / CPI</div><ul class="ind-read"><li>Se EAC &gt; BAC → estouro esperado.</li></ul></div>
-        <div class="ind"><div class="ind-top"><span class="ind-code">VAC</span><span class="ind-name">Variance at Completion</span></div><div class="ind-what">Estouro ou economia projetada.</div><div class="ind-formula">VAC = BAC − EAC</div><ul class="ind-read"><li><b>Positivo</b> = economia · <b>Negativo</b> = estouro</li></ul></div>
-      </div>
-      <h4 class="ind-h">Classificação RAG</h4>
-      <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:4px">
-        <tr><td style="padding:7px;width:110px"><span class="pill green">🟢 Verde</span></td><td style="padding:7px">CPI ≥ 0,95 <b>e</b> SPI ≥ 0,95 <b>e</b> sem risco alto aberto.</td></tr>
-        <tr><td style="padding:7px"><span class="pill amber">🟡 Amarelo</span></td><td style="padding:7px">Um dos índices entre 0,85 e 0,95, <b>ou</b> risco alto aberto.</td></tr>
-        <tr><td style="padding:7px"><span class="pill red">🔴 Vermelho</span></td><td style="padding:7px">CPI &lt; 0,85 <b>ou</b> SPI &lt; 0,85 <b>ou</b> estouro confirmado.</td></tr>
+    <div class="panel-title">Riscos abertos — detalhe</div>
+    <div id="no-risks-msg" style="color:var(--muted);font-size:13px;padding:10px 0;display:none">Nenhum risco aberto registrado.</div>
+    <div class="tbl-wrap">
+      <table id="riskTable">
+        <thead><tr>
+          <th>Projeto</th><th>ID</th><th>Tipo</th><th>Descrição</th>
+          <th><span class="tip" data-tip="Probabilidade de ocorrência (1–5). P×I = Score de exposição ao risco.">P</span></th>
+          <th><span class="tip" data-tip="Impacto caso o risco ocorra (1–5). P×I = Score de exposição ao risco.">I</span></th>
+          <th>Score</th><th>Severidade</th><th>Responsável</th><th>Status</th>
+        </tr></thead>
+        <tbody id="riskRows"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- ── FUTURE SECTION (disabled / v2) ─────────────────────────────────── -->
+  <!-- Glossary accordion -->
+  <div class="panel">
+    <button class="accordion-btn" onclick="toggleAccordion(this)">Como interpretar os indicadores EVM</button>
+    <div class="accordion-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:4px">
+        Quatro <b>valores base</b> alimentam todo o EVM. Deles derivam variações, índices e projeções.
+      </p>
+      <h4 class="ind-h">Valores base</h4>
+      <div class="ind-grid">
+        <div class="ind"><div class="ind-top"><span class="ind-code">BAC</span><span class="ind-name">Budget at Completion</span></div><div class="ind-what">Orçamento total aprovado.</div><div class="ind-formula">BAC = linha de base</div><ul class="ind-read"><li>Não muda sem CR formal.</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">PV</span><span class="ind-name">Planned Value</span></div><div class="ind-what">Quanto deveria estar gasto até hoje.</div><div class="ind-formula">PV = BAC × % planejado</div></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">EV</span><span class="ind-name">Earned Value</span></div><div class="ind-what">Valor do trabalho efetivamente entregue.</div><div class="ind-formula">EV = BAC × % executado</div><ul class="ind-read"><li>Núcleo do EVM: progresso em R$.</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">AC</span><span class="ind-name">Actual Cost</span></div><div class="ind-what">Quanto foi realmente gasto.</div><div class="ind-formula">AC = custos incorridos</div></div>
+      </div>
+      <h4 class="ind-h">Variações</h4>
+      <div class="ind-grid">
+        <div class="ind"><div class="ind-top"><span class="ind-code">CV</span><span class="ind-name">Cost Variance</span></div><div class="ind-formula">CV = EV − AC</div><ul class="ind-read"><li><b>Positivo</b> = abaixo do orçamento · <b>Negativo</b> = estourando</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">SV</span><span class="ind-name">Schedule Variance</span></div><div class="ind-formula">SV = EV − PV</div><ul class="ind-read"><li><b>Positivo</b> = adiantado · <b>Negativo</b> = atrasado</li></ul></div>
+      </div>
+      <h4 class="ind-h">Índices de performance</h4>
+      <div class="ind-grid">
+        <div class="ind"><div class="ind-top"><span class="ind-code">CPI</span><span class="ind-name">Cost Performance Index</span></div><div class="ind-formula">CPI = EV / AC</div><ul class="ind-read"><li><b>≥ 0,95</b> Verde · <b>0,85–0,95</b> Amarelo · <b>&lt; 0,85</b> Vermelho</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">SPI</span><span class="ind-name">Schedule Performance Index</span></div><div class="ind-formula">SPI = EV / PV</div><ul class="ind-read"><li><b>≥ 0,95</b> Verde · <b>0,85–0,95</b> Amarelo · <b>&lt; 0,85</b> Vermelho</li></ul></div>
+      </div>
+      <h4 class="ind-h">Projeções</h4>
+      <div class="ind-grid">
+        <div class="ind"><div class="ind-top"><span class="ind-code">EAC</span><span class="ind-name">Estimate at Completion</span></div><div class="ind-formula">EAC = BAC / CPI</div><ul class="ind-read"><li>Se EAC > BAC → estouro esperado.</li></ul></div>
+        <div class="ind"><div class="ind-top"><span class="ind-code">VAC</span><span class="ind-name">Variance at Completion</span></div><div class="ind-formula">VAC = BAC − EAC</div><ul class="ind-read"><li><b>Positivo</b> = economia · <b>Negativo</b> = estouro</li></ul></div>
+      </div>
+      <h4 class="ind-h">Matriz de Riscos P×I</h4>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-top:4px">
+        Padrão PMI/PMBOK. <b>Probabilidade (P)</b> × <b>Impacto (I)</b> = Score de exposição.<br>
+        Score <b>≥ 15</b> = Alto (vermelho) · <b>6–14</b> = Médio (amarelo) · <b>1–5</b> = Baixo (verde).<br>
+        Cada risco aparece como chip na célula correspondente à sua P e I.
+      </p>
+    </div>
+  </div>
+
+  <!-- Future / disabled section -->
   <div class="panel-future">
     <div class="panel-title" style="color:var(--future-text)">
       📊 Indicadores de Valor de Negócio
@@ -397,64 +507,56 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
     </div>
     <div class="future-intro">
       <strong>Por que estes campos ainda não funcionam aqui?</strong><br>
-      ROI, benefício realizado e taxa de adoção precisam de <em>histórico longitudinal</em> — ou seja, comparar o custo do projeto com o benefício capturado ao longo do tempo após a entrega. Isso requer um banco de dados com snapshots persistentes, que será implementado na <strong>v2 com Supabase</strong>.<br><br>
-      Os campos correspondentes já estão reservados na planilha (<em>PROJETOS</em>, colunas em amarelo) para você começar a registrar os dados. Quando a v2 estiver pronta, esses dados serão importados automaticamente.
+      ROI, benefício realizado, eficiência e taxa de adoção precisam de histórico longitudinal — comparar o custo do projeto com o benefício capturado ao longo do tempo após a entrega. Isso requer banco de dados com snapshots persistentes, que será implementado na <strong>v2 com Supabase + login próprio</strong>.<br>
+      Os campos já estão reservados na planilha (colunas em amarelo na aba PROJETOS).
     </div>
     <div class="future-grid">
       <div class="future-metric">
         <div class="fm-icon">💰</div>
         <div class="fm-title">ROI do Projeto</div>
         <div class="fm-value">—</div>
-        <div class="fm-why">Fórmula: (Benefício esperado − EAC) / EAC. Requer campo "Benefício esperado" preenchido e histórico de EAC. <em>Disponível na v2.</em></div>
+        <div class="fm-why">Fórmula: (Benefício esperado − EAC) / EAC. Requer campo "Benefício esperado" e histórico de EAC. <em>v2.</em></div>
       </div>
       <div class="future-metric">
         <div class="fm-icon">⏱</div>
         <div class="fm-title">Eficiência (horas economizadas)</div>
         <div class="fm-value">—</div>
-        <div class="fm-why">Comparação entre horas baseline (antes do projeto) e horas após a entrega. Requer medição pré e pós-projeto com banco de dados. <em>Disponível na v2.</em></div>
+        <div class="fm-why">Comparação horas baseline × horas pós-entrega. Requer medição longitudinal. <em>v2.</em></div>
       </div>
       <div class="future-metric">
         <div class="fm-icon">👥</div>
         <div class="fm-title">Taxa de Adoção</div>
         <div class="fm-value">—</div>
-        <div class="fm-why">Fórmula: Usuários ativos / Usuários-alvo. Requer acompanhamento pós-go-live com snapshots periódicos. <em>Disponível na v2.</em></div>
+        <div class="fm-why">Usuários ativos / Usuários-alvo. Requer snapshots pós-go-live. <em>v2.</em></div>
       </div>
       <div class="future-metric">
         <div class="fm-icon">⭐</div>
         <div class="fm-title">NPS Interno</div>
         <div class="fm-value">—</div>
-        <div class="fm-why">Net Promoter Score interno (promotores − detratores, escala −100 a +100). Requer coleta periódica por formulário integrado. <em>Disponível na v2.</em></div>
+        <div class="fm-why">Promotores − Detratores (−100 a +100). Requer coleta por formulário integrado. <em>v2.</em></div>
       </div>
     </div>
-    <p style="font-size:11px;color:var(--future-text);margin-top:14px;opacity:.7">
-      💡 <strong>O que fazer agora:</strong> preencha as colunas "Benefício esperado (R$)", "Usuários-alvo" e "Usuários ativos" na aba PROJETOS da planilha (fundo amarelo). Os dados ficam salvos e serão utilizados quando a v2 estiver disponível.
-    </p>
   </div>
 
-</div>
+</div><!-- /page-panorama -->
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <!-- PAGE: ESCOPO & QUALIDADE                                               -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div id="page-escopo" class="page">
-
   <div class="quality-grid" id="qualityKpis"></div>
 
-  <!-- Rework table -->
   <div class="panel">
-    <div class="panel-title">
-      Retrabalho por Projeto
-      <span class="pill now">AGORA</span>
-    </div>
+    <div class="panel-title">Retrabalho por Projeto <span class="pill now">AGORA</span></div>
     <div class="tbl-wrap">
       <table id="retrabalhoTable">
         <thead><tr>
           <th>Projeto</th>
-          <th><span class="tip" data-tip="Horas gastas em retrabalho — desfazendo e refazendo trabalho. Preencher na aba PROJETOS da planilha.">Horas de retrabalho</span></th>
-          <th><span class="tip" data-tip="Custo em R$ do retrabalho. Preencher na aba PROJETOS da planilha.">Custo do retrabalho (R$)</span></th>
-          <th><span class="tip" data-tip="Custo da Qualidade = Retrabalho (R$) / AC (R$). Mostra qual fração do custo real foi gasto em correções. Quanto menor, melhor. Acima de 10% é sinal de alerta.">Custo da Qualidade (% AC)</span></th>
-          <th><span class="tip" data-tip="Bugs encontrados — relevante principalmente para projetos de software/TI. Preencher na aba PROJETOS.">Bugs encontrados</span></th>
-          <th><span class="tip" data-tip="Bugs resolvidos. Taxa de resolução = Resolvidos / Encontrados. Abaixo de 70% indica débito técnico acumulado.">Bugs resolvidos</span></th>
+          <th><span class="tip" data-tip="Horas de retrabalho — desfazendo e refazendo trabalho.">Horas retrabalho</span></th>
+          <th><span class="tip" data-tip="Custo do retrabalho em R$.">Custo (R$)</span></th>
+          <th><span class="tip" data-tip="Custo da Qualidade = Retrabalho R$ / AC. Acima de 10% é sinal de alerta.">% do AC (Qualidade)</span></th>
+          <th>Bugs encontrados</th>
+          <th>Bugs resolvidos</th>
           <th>Taxa resolução</th>
         </tr></thead>
         <tbody id="retrabalhoRows"></tbody>
@@ -462,67 +564,21 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
     </div>
   </div>
 
-  <!-- Scope changes table -->
   <div class="panel">
-    <div class="panel-title">
-      Mudanças de Escopo (Change Requests)
-      <span class="pill now">AGORA</span>
-    </div>
-    <div id="no-crs" style="color:var(--muted);font-size:13px;padding:20px 0;display:none">
-      Nenhuma mudança de escopo registrada. Preencha a aba MUDANCAS_ESCOPO na planilha.
+    <div class="panel-title">Mudanças de Escopo — Change Requests <span class="pill now">AGORA</span></div>
+    <div id="no-crs" style="color:var(--muted);font-size:13px;padding:16px 0;display:none">
+      Nenhuma mudança de escopo registrada. Preencha a aba MUDANCAS_ESCOPO.
     </div>
     <div class="tbl-wrap">
       <table id="crsTable" style="display:none">
         <thead><tr>
-          <th>Projeto</th>
-          <th>ID</th>
-          <th>Data</th>
-          <th>Descrição</th>
-          <th>Impacto prazo</th>
-          <th>Impacto custo</th>
-          <th>Aprovador</th>
-          <th>Status</th>
+          <th>Projeto</th><th>ID</th><th>Data</th><th>Descrição</th>
+          <th>Impacto prazo</th><th>Impacto custo</th><th>Aprovador</th><th>Status</th>
         </tr></thead>
         <tbody id="crsRows"></tbody>
       </table>
     </div>
   </div>
-
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- PAGE: SENTIMENTO DO TIME                                               -->
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<div id="page-sentimento" class="page">
-
-  <div class="panel">
-    <div class="panel-title">
-      Satisfação do Time por Projeto — Histórico
-      <span class="pill now">AGORA</span>
-    </div>
-    <div id="no-sent" style="color:var(--muted);font-size:13px;padding:20px 0;display:none">
-      Nenhum registro de sentimento encontrado. Preencha a aba SENTIMENTO na planilha.
-    </div>
-    <canvas id="sentChart" style="max-height:320px"></canvas>
-    <div class="chart-note">Escala 1–10. 🟢 ≥ 7 · 🟡 5–6 · 🔴 ≤ 4. Colete com o time nas reuniões de retrospectiva ou revisão quinzenal.</div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Histórico completo de sentimento</div>
-    <div class="tbl-wrap">
-      <table id="sentTable">
-        <thead><tr>
-          <th>Projeto</th>
-          <th>Data</th>
-          <th>Período</th>
-          <th>Nota (1–10)</th>
-          <th>Observação</th>
-        </tr></thead>
-        <tbody id="sentRows"></tbody>
-      </table>
-    </div>
-  </div>
-
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════ -->
@@ -533,21 +589,20 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
     <label for="proj-select">Projeto:</label>
     <select id="proj-select" onchange="renderWBS()"></select>
     <div id="wbs-legend">
-      <span class="leg-item"><span class="leg-dot" style="background:var(--blue-1)"></span>Projeto (raiz)</span>
-      <span class="leg-item"><span class="leg-dot" style="background:var(--blue-2)"></span>Fase (nível 1)</span>
-      <span class="leg-item"><span class="leg-dot" style="background:#e8eef8;border:1px solid var(--blue-3)"></span>Entregável (nível 2)</span>
-      <span class="leg-item"><span class="leg-dot" style="background:#f4f6fb;border:1px solid var(--blue-4)"></span>Pacote (nível 3)</span>
+      <span class="leg-item"><span class="leg-dot" style="background:var(--blue-1)"></span>Projeto</span>
+      <span class="leg-item"><span class="leg-dot" style="background:var(--blue-2)"></span>Fase</span>
+      <span class="leg-item"><span class="leg-dot" style="background:#e8eef8;border:1px solid var(--blue-3)"></span>Entregável</span>
+      <span class="leg-item"><span class="leg-dot" style="background:#f4f6fb;border:1px solid var(--blue-4)"></span>Pacote</span>
     </div>
   </div>
   <div id="wbs-empty" style="color:var(--muted);font-size:13px;padding:40px 0;text-align:center;display:none">
-    Nenhum dado de WBS disponível para este projeto.
+    Nenhum dado WBS para este projeto.
   </div>
   <div class="panel" style="overflow:auto">
     <div id="wbs-tree" class="tree-wrap"></div>
   </div>
 </div>
 
-<!-- ── TOAST / TOOLTIP ──────────────────────────────────────────────────── -->
 <div id="toast"></div>
 <div id="ftip"></div>
 
@@ -556,183 +611,393 @@ ul.tree-root>li::before,ul.tree-root>li::after{display:none}
 // State
 // ═══════════════════════════════════════════════════════════════════════════
 let STATE = {
-  projects: [], marcos: [], riscos: [], wbs: [],
-  mudancas: [], sentimento: [],
-  fileName: '', loaded: false
+  projects:[], riscos:[], wbs:[],
+  mudancas:[], sentimento:[],
+  fileName:'', loaded:false,
+  source:'', sheetsId:''   // 'xlsx' ou 'sheets'
 };
-let chartScatter = null, chartRisk = null, chartSent = null;
+let chartScatter = null;
 const EDITS = {};
 
 // ═══════════════════════════════════════════════════════════════════════════
-// File loading
+// File loading — xlsx
 // ═══════════════════════════════════════════════════════════════════════════
 function loadFile(input) {
-  const file = input.files[0];
-  if (!file) return;
+  const file = input.files[0]; if (!file) return;
   STATE.fileName = file.name;
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const wb = XLSX.read(e.target.result, { type:'binary', cellDates:true });
-      STATE.projects  = sheetToObjects(wb, 'PROJETOS',       3);
-      STATE.marcos    = sheetToObjects(wb, 'MARCOS',         3);
-      STATE.riscos    = sheetToObjects(wb, 'RISCOS',         3);
-      STATE.wbs       = sheetToObjects(wb, 'WBS',            3);
-      STATE.mudancas  = sheetToObjects(wb, 'MUDANCAS_ESCOPO',3);
-      STATE.sentimento= sheetToObjects(wb, 'SENTIMENTO',     3);
-      STATE.loaded    = true;
-      document.getElementById('fileInfo').textContent = `${file.name} · carregado ${fmtNow()}`;
-      document.getElementById('exportBtn').style.display = '';
-      document.getElementById('empty').style.display = 'none';
-      document.getElementById('tabs').style.display = '';
-      renderPanorama();
-      renderEscopo();
-      renderSentimento();
-      buildWBSSelector();
-      renderWBS();
-    } catch(err) {
-      toast('Erro ao ler o arquivo: ' + err.message, true);
-    }
+      const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
+      STATE.projects   = sheetToObjects(wb,'PROJETOS',3);
+      STATE.riscos     = sheetToObjects(wb,'RISCOS',3);
+      STATE.wbs        = sheetToObjects(wb,'WBS',3);
+      STATE.mudancas   = sheetToObjects(wb,'MUDANCAS_ESCOPO',3);
+      STATE.sentimento = sheetToObjects(wb,'SENTIMENTO',3);
+      STATE.loaded = true;
+      STATE.source = 'xlsx';
+      showData(file.name);
+    } catch(err) { toast('Erro ao ler: '+err.message, true); }
   };
   reader.readAsBinaryString(file);
   input.value = '';
 }
 
 function sheetToObjects(wb, name, headerRow) {
-  const ws = wb.Sheets[name];
-  if (!ws) return [];
-  return XLSX.utils.sheet_to_json(ws, { range: headerRow - 1, defval: '' });
+  const ws = wb.Sheets[name]; if (!ws) return [];
+  return XLSX.utils.sheet_to_json(ws, {range: headerRow-1, defval:''});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Google Sheets loading
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleSheetsPanel() {
+  const p = document.getElementById('sheets-panel');
+  p.classList.toggle('open');
+}
+
+// ── JSONP loader: bypasses CORS, works com "Qualquer pessoa com o link" ──────
+function loadSheetJSONP(spreadsheetId, sheetName) {
+  return new Promise((resolve, reject) => {
+    // Callback único por chamada
+    const cbName = 'gvizCb_' + sheetName.replace(/[^a-zA-Z0-9]/g,'_') + '_' + Date.now();
+
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      reject(new Error(`Timeout ao carregar aba "${sheetName}"`));
+    }, 20000);
+
+    window[cbName] = function(data) {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+
+      try {
+        if (!data || data.status !== 'ok') {
+          const msg = (data && data.errors && data.errors[0])
+            ? data.errors[0].detailed_message || data.errors[0].message
+            : 'Acesso negado ou aba não encontrada';
+          reject(new Error(`Aba "${sheetName}": ${msg}`)); return;
+        }
+        const table = data.table;
+        // range=A3:ZZ1000 + headers=1: cols[i].label = linha 3 da planilha (cabeçalhos reais)
+        // table.rows = linha 4 em diante (apenas dados)
+        if (!table.cols || !table.rows) { resolve([]); return; }
+
+        const headers = table.cols.map(col => (col.label || '').trim());
+
+        const objects = [];
+        for (const row of table.rows) {
+          if (!row || !row.c) continue;
+          const obj = {};
+          headers.forEach((h, idx) => {
+            const cell = row.c[idx];
+            // Datas chegam como objeto Date do JS; formata como YYYY-MM-DD
+            if (cell && cell.v instanceof Date) {
+              const d = cell.v;
+              obj[h] = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            } else {
+              obj[h] = (cell && cell.v != null) ? String(cell.v) : '';
+            }
+          });
+          if (Object.values(obj).every(v => !v)) continue; // pula linhas totalmente vazias
+          objects.push(obj);
+        }
+        resolve(objects);
+      } catch(e) {
+        reject(new Error(`Erro ao processar aba "${sheetName}": ${e.message}`));
+      }
+    };
+
+    const script = document.createElement('script');
+    script.onerror = () => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      reject(new Error(`Não foi possível acessar a planilha. Verifique se está compartilhada como "Qualquer pessoa com o link".`));
+    };
+    // range=A3:ZZ1000 + headers=1: pula as linhas 1 (título) e 2 (instrução);
+    // gviz usa a linha 3 (1ª da faixa) como cabeçalho → cols[i].label = nome real da coluna
+    script.src = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=responseHandler:${cbName}&headers=1&range=A3:ZZ1000&sheet=${encodeURIComponent(sheetName)}`;
+    document.head.appendChild(script);
+  });
+}
+
+async function loadFromSheets() {
+  const sheetId = document.getElementById('sheetIdInput').value.trim();
+  if (!sheetId) { setSheetsStatus('Por favor, insira o ID ou a URL da planilha.','err'); return; }
+
+  // Aceita URL completa ou apenas o ID
+  const idMatch = sheetId.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  const id = idMatch ? idMatch[1] : sheetId;
+
+  setSheetsStatus('Conectando…','');
+  const sheetNames = ['PROJETOS','RISCOS','WBS','MUDANCAS_ESCOPO','SENTIMENTO'];
+
+  try {
+    const results = await Promise.all(sheetNames.map(name => loadSheetJSONP(id, name)));
+    [STATE.projects, STATE.riscos, STATE.wbs, STATE.mudancas, STATE.sentimento] = results;
+    STATE.loaded = true;
+    STATE.source = 'sheets';
+    STATE.sheetsId = id;
+    try { localStorage.setItem('evm_sheetsId', id); } catch(e){}
+    setSheetsStatus('✓ Conectado e carregado com sucesso!','ok');
+    showData('Google Planilhas · '+id.slice(0,12)+'…');
+  } catch(err) {
+    setSheetsStatus('Erro: '+err.message,'err');
+  }
+}
+
+function setSheetsStatus(msg, cls) {
+  const el = document.getElementById('sheetsStatus');
+  el.textContent = msg; el.className = 'sp-status ' + cls;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Show data (after load from any source)
+// ═══════════════════════════════════════════════════════════════════════════
+function showData(label) {
+  document.getElementById('fileInfo').textContent = `${label} · ${fmtNow()}`;
+  document.getElementById('exportBtn').style.display = '';
+  document.getElementById('refreshBtn').style.display = '';
+  document.getElementById('empty').style.display = 'none';
+  document.getElementById('tabs').style.display = '';
+  // ── Ativar a aba Panorama EVM ──────────────────────────────────────────
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-panorama').classList.add('active');
+  document.querySelectorAll('#tabs .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#tabs .tab')[0].classList.add('active');
+  // ── Renderizar ────────────────────────────────────────────────────────
+  renderPanorama();
+  renderEscopo();
+  buildWBSSelector();
+  renderWBS();
+}
+
+async function refreshData() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = 'Atualizando…';
+  try {
+    if (STATE.sheetsId) {
+      // Fonte: Google Planilhas
+      const sheetNames = ['PROJETOS','RISCOS','WBS','MUDANCAS_ESCOPO','SENTIMENTO'];
+      const results = await Promise.all(sheetNames.map(n => loadSheetJSONP(STATE.sheetsId, n)));
+      [STATE.projects, STATE.riscos, STATE.wbs, STATE.mudancas, STATE.sentimento] = results;
+      document.getElementById('fileInfo').textContent =
+        `Google Planilhas · ${STATE.sheetsId.slice(0,12)}… · ${fmtNow()}`;
+      renderPanorama(); renderEscopo(); buildWBSSelector(); renderWBS();
+      toast('Dados atualizados com sucesso');
+    } else {
+      // Fonte: .xlsx — browser não permite reler arquivo sem input do usuário
+      toast('Para atualizar o .xlsx, use o botão "Carregar .xlsx" novamente.');
+    }
+  } catch(e) {
+    toast('Erro ao atualizar: '+e.message, true);
+  }
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 8A5.5 5.5 0 1 1 10 3.07M13.5 2v4h-4"/></svg>Atualizar`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WBS expandable detail
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleWBSDetail(rowId) {
+  const row  = document.getElementById(rowId);
+  if (!row) return;
+  const code = rowId.replace('wbs-','');
+  const icon = document.getElementById('icon-wbs-'+code);
+  const open = row.style.display === '';
+  row.style.display  = open ? 'none' : '';
+  if (icon) icon.classList.toggle('open', !open);
+}
+
+function buildWBSDetailRows(items, cols) {
+  if (!items || items.length === 0) return '';
+  // Ordena por Código WBS (ordenação natural)
+  const sorted = [...items].sort((a,b)=>
+    String(a['Código WBS *']||a['Código WBS']||'')
+      .localeCompare(String(b['Código WBS *']||b['Código WBS']||''), undefined, {numeric:true}));
+
+  const rows = sorted.map(w => {
+    const lvl   = parseInt(w['Nível *']||w['Nível']||0);
+    const code  = w['Código WBS *']||w['Código WBS']||'';
+    const tipo  = (w['Tipo *']||w['Tipo']||'').toLowerCase();
+    const desc  = escHtml((w['Descrição *']||w['Descrição']||'').replace(/^🏁\s*/,''));
+    const resp  = escHtml(w['Responsável']||'—');
+    const pct_p = w['% Planejado']||w['% Planejado *']||'';
+    const pct_e = w['% Executado']||w['% Executado *']||'';
+    const data  = w['Data']||w['Data *']||'';
+    const indent = lvl * 18;
+
+    if (tipo === 'marco') {
+      // Linha de marco destacada
+      const today = new Date(); today.setHours(0,0,0,0);
+      const mDate = data ? new Date(data) : null;
+      const isPast = mDate && mDate < today;
+      const dateStr = data ? fmtDate(data) : '—';
+      const dateColor = isPast ? 'var(--red)' : 'var(--accent)';
+      return `<tr class="wbs-marco-row">
+        <td colspan="3" style="padding-left:${indent+8}px">
+          <span style="font-size:13px;margin-right:6px">🏁</span>
+          <strong style="color:#3730A3">${desc}</strong>
+          <span style="font-size:11px;color:var(--muted);margin-left:6px">${code}</span>
+        </td>
+        <td colspan="2" style="text-align:right;font-weight:700;color:${dateColor};white-space:nowrap">
+          ${isPast?'✓ ':''}${dateStr}
+        </td>
+      </tr>`;
+    }
+
+    const lvlClass = tipo === 'sumário' && lvl === 0 ? 'wbs-lvl-0'
+                   : tipo === 'sumário' ? 'wbs-lvl-1'
+                   : 'wbs-lvl-2';
+    return `<tr class="${lvlClass}">
+      <td style="padding-left:${indent+8}px;white-space:nowrap">
+        <span class="wbs-indent">${'·'.repeat(lvl)} </span><strong>${code}</strong>
+      </td>
+      <td>${desc}</td>
+      <td style="text-align:center">${resp}</td>
+      <td class="num" style="text-align:right">${pct_p?Math.round(parseFloat(pct_p)*100)+'%':'—'}</td>
+      <td class="num" style="text-align:right">${pct_e?Math.round(parseFloat(pct_e)*100)+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="wbs-detail-inner">
+    <table>
+      <thead><tr>
+        <th>Código / Descrição</th><th></th><th style="text-align:center">Responsável</th>
+        <th style="text-align:right">% Plan.</th><th style="text-align:right">% Exec. / Data</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // EVM calculations
 // ═══════════════════════════════════════════════════════════════════════════
 function calcEVM(p) {
-  const bac     = num(p['BAC (R$) *']);
-  const pct_pv  = pct(p['% Planejado *']);
-  const pct_ev  = pct(p['% Executado *']);
-  const ac      = num(p['AC (R$) *']);
-  const retrab  = num(p['Retrabalho (R$)']);
-  const bugs_f  = num(p['Bugs encontrados']);
-  const bugs_r  = num(p['Bugs resolvidos']);
+  const bac    = num(p['BAC (R$) *']);
+  const pct_pv = pct(p['% Planejado *']);
+  const pct_ev = pct(p['% Executado *']);
+  const ac     = num(p['AC (R$) *']);
+  const retrab = num(p['Retrabalho (R$)']);
+  const bugs_f = num(p['Bugs encontrados']);
+  const bugs_r = num(p['Bugs resolvidos']);
 
   const pv  = bac * pct_pv;
   const ev  = bac * pct_ev;
   const cv  = ev - ac;
   const sv  = ev - pv;
-  const cpi = ac > 0 ? ev / ac : null;
-  const spi = pv > 0 ? ev / pv : null;
-  const eac = (cpi && cpi > 0) ? bac / cpi : null;
-  const etc = eac !== null ? eac - ac : null;
-  const vac = eac !== null ? bac - eac : null;
-  const cq  = (retrab > 0 && ac > 0) ? retrab / ac : null; // Custo da Qualidade
+  const cpi = ac > 0 ? ev/ac : null;
+  const spi = pv > 0 ? ev/pv : null;
+  const eac = (cpi && cpi > 0) ? bac/cpi : null;
+  const etc = eac !== null ? eac-ac : null;
+  const vac = eac !== null ? bac-eac : null;
+  const cq  = (retrab > 0 && ac > 0) ? retrab/ac : null;
 
-  const code = p['Código *'] || p['Código'] || '';
+  const code = p['Código *']||p['Código']||'';
   const hasHighRisk = STATE.riscos.some(r => {
-    const rc   = r['Código Projeto *'] || r['Código Projeto'] || '';
-    const prob = num(r['Probabilidade\n(1–5) *'] || r['Probabilidade (1–5) *'] || 0);
-    const imp  = num(r['Impacto\n(1–5) *']       || r['Impacto (1–5) *']       || 0);
-    const score  = prob * imp;
-    const status = (r['Status'] || '').toLowerCase();
-    return rc === code && score >= 15 && status !== 'fechado' && status !== 'encerrado';
+    const rc    = r['Código Projeto *']||r['Código Projeto']||'';
+    const prob  = num(r['Probabilidade\n(1–5) *']||r['Probabilidade (1–5) *']||0);
+    const imp   = num(r['Impacto\n(1–5) *']||r['Impacto (1–5) *']||0);
+    const score = prob*imp;
+    const st    = (r['Status']||'').toLowerCase();
+    return rc===code && score>=15 && st!=='fechado' && st!=='encerrado';
   });
 
-  let rag = 'green';
-  if (cpi !== null && cpi < 0.85) rag = 'red';
-  else if (spi !== null && spi < 0.85) rag = 'red';
-  else if (cpi !== null && cpi < 0.95) rag = 'amber';
-  else if (spi !== null && spi < 0.95) rag = 'amber';
-  else if (hasHighRisk) rag = 'amber';
+  let rag='green';
+  if (cpi!==null&&cpi<0.85) rag='red';
+  else if (spi!==null&&spi<0.85) rag='red';
+  else if (cpi!==null&&cpi<0.95) rag='amber';
+  else if (spi!==null&&spi<0.95) rag='amber';
+  else if (hasHighRisk) rag='amber';
 
-  return { bac, pv, ev, ac, cv, sv, cpi, spi, eac, etc, vac, rag, retrab, cq, bugs_f, bugs_r };
+  return {bac,pv,ev,ac,cv,sv,cpi,spi,eac,etc,vac,rag,retrab,cq,bugs_f,bugs_r};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Panorama render
 // ═══════════════════════════════════════════════════════════════════════════
 function renderPanorama() {
-  const evms = STATE.projects.map(p => ({ p, e: calcEVM(p) }));
-  const totalBAC    = evms.reduce((s,x) => s + x.e.bac, 0);
-  const totalAC     = evms.reduce((s,x) => s + x.e.ac,  0);
-  const totalEAC    = evms.reduce((s,x) => s + (x.e.eac || x.e.bac), 0);
-  const totalRetrab = evms.reduce((s,x) => s + x.e.retrab, 0);
-  const rags = { green: 0, amber: 0, red: 0 };
-  evms.forEach(x => rags[x.e.rag]++);
+  const evms = STATE.projects.map(p=>({p, e:calcEVM(p)}));
+  const totalBAC   = evms.reduce((s,x)=>s+x.e.bac,0);
+  const totalAC    = evms.reduce((s,x)=>s+x.e.ac,0);
+  const totalEV    = evms.reduce((s,x)=>s+x.e.ev,0);
+  const totalEAC   = evms.reduce((s,x)=>s+(x.e.eac||x.e.bac),0);
+  const totalRetrab= evms.reduce((s,x)=>s+x.e.retrab,0);
+  const rags={green:0,amber:0,red:0};
+  evms.forEach(x=>rags[x.e.rag]++);
 
-  // Média de sentimento geral
-  const allNotes = STATE.sentimento.map(s => num(s['Nota do time (1–10) *'] || s['Nota do time (1-10) *'] || 0)).filter(n => n > 0);
-  const avgSent  = allNotes.length ? (allNotes.reduce((a,b)=>a+b,0)/allNotes.length).toFixed(1) : null;
-
-  document.getElementById('kpiRow').innerHTML = `
+  document.getElementById('kpiRow').innerHTML=`
     <div class="kpi"><div class="label">Projetos ativos</div>
       <div class="value">${evms.length}</div>
       <div class="sub">${rags.green} verde · ${rags.amber} amarelo · ${rags.red} vermelho</div></div>
-    <div class="kpi"><div class="label">BAC total</div>
+    <div class="kpi"><div class="label">Orçamento total</div>
       <div class="value">${fmtBRL(totalBAC)}</div>
-      <div class="sub">orçamento agregado das baselines</div></div>
+      <div class="sub">orçamento baseline (BAC)</div></div>
+    <div class="kpi"><div class="label">EV total</div>
+      <div class="value">${fmtBRL(totalEV)}</div>
+      <div class="sub">${totalBAC>0?Math.round(totalEV/totalBAC*100):'—'}% do BAC entregue</div></div>
     <div class="kpi"><div class="label">AC acumulado</div>
       <div class="value">${fmtBRL(totalAC)}</div>
-      <div class="sub">${totalBAC > 0 ? Math.round(totalAC/totalBAC*100) : '—'}% do BAC já gasto</div></div>
+      <div class="sub">${totalBAC>0?Math.round(totalAC/totalBAC*100):'—'}% do BAC gasto</div></div>
     <div class="kpi"><div class="label">EAC projetado</div>
-      <div class="value" style="color:${totalEAC > totalBAC ? 'var(--red)' : 'var(--green)'}">${fmtBRL(totalEAC)}</div>
-      <div class="sub">${totalEAC > totalBAC ? '+' : ''}${fmtBRL(totalEAC - totalBAC)} vs. BAC</div></div>
-    <div class="kpi"><div class="label">Retrabalho total</div>
-      <div class="value" style="color:${totalRetrab > 0 ? 'var(--amber)':'var(--green)'}">${fmtBRL(totalRetrab)}</div>
-      <div class="sub">custo da qualidade somado</div></div>
-    ${avgSent !== null ? `<div class="kpi"><div class="label">Sentimento médio</div>
-      <div class="value">${avgSent} <span style="font-size:16px">${sentEmoji(parseFloat(avgSent))}</span></div>
-      <div class="sub">escala 1–10 · ${allNotes.length} registros</div></div>` : ''}
+      <div class="value" style="color:${totalEAC>totalBAC?'var(--red)':'var(--green)'}">${fmtBRL(totalEAC)}</div>
+      <div class="sub">${totalEAC>totalBAC?'+':''}${fmtBRL(totalEAC-totalBAC)} vs BAC</div></div>
+    ${totalRetrab>0?`<div class="kpi"><div class="label">Retrabalho total</div>
+      <div class="value" style="color:var(--amber)">${fmtBRL(totalRetrab)}</div>
+      <div class="sub">custo da qualidade</div></div>`:''}
   `;
 
-  // Table rows
-  const ragLabel = { green:'🟢 Verde', amber:'🟡 Amarelo', red:'🔴 Vermelho' };
-  document.getElementById('projRows').innerHTML = evms.map(({p, e}) => {
-    const code        = p['Código *'] || p['Código'] || '';
-    const name        = p['Nome do Projeto'] || '';
-    const sponsor     = p['Sponsor'] || '';
-    const milestone   = getEdit(code,'milestone') || p['Próximo Marco'] || '';
-    const mdate       = getEdit(code,'mdate')     || fmtDate(p['Data Marco']) || '';
-    const milestoneLabel = milestone + (mdate ? ` — ${mdate}` : '');
-    const crCount     = STATE.mudancas.filter(m => (m['Código Projeto *']||m['Código Projeto']||'') === code).length;
-    const latestSent  = getLatestSentimento(code);
-    const retrabStr   = e.retrab > 0 ? fmtBRL(e.retrab) : '—';
-    const cqStr       = e.cq !== null ? `<span class="${e.cq > 0.10 ? 'num bad':'num warn'}">${(e.cq*100).toFixed(1)}%</span>` : '';
-    return `<tr>
-      <td><div class="pname">${name || editCell(code,'name',name,'Nome')}</div>
+  // Project table rows
+  const ragLabel={green:'🟢 Verde',amber:'🟡 Amarelo',red:'🔴 Vermelho'};
+  const COLS = 11; // número de colunas (para colspan do WBS expandido)
+  document.getElementById('projRows').innerHTML=evms.map(({p,e})=>{
+    const code      = p['Código *']||p['Código']||'';
+    const name      = p['Nome do Projeto']||'';
+    const sponsor   = p['Sponsor']||'';
+    const wbsMarco  = getProximoMarco(code);
+    const milestone = getEdit(code,'milestone')||(wbsMarco&&wbsMarco.desc)||p['Próximo Marco']||'';
+    const mdate     = getEdit(code,'mdate')||(wbsMarco&&fmtDate(wbsMarco.data))||fmtDate(p['Data Marco'])||'';
+    const msLabel   = milestone+(mdate?` — ${mdate}`:'');
+    const latentSent= getLatestSentimento(code);
+    // WBS items para este projeto
+    const wbsItems  = STATE.wbs.filter(w=>(w['Código Projeto *']||w['Código Projeto']||'')===code);
+    const hasWBS    = wbsItems.length > 0;
+    const wbsRows   = hasWBS ? buildWBSDetailRows(wbsItems, COLS) : '';
+    return `<tr class="proj-row${hasWBS?' expandable':''}" onclick="${hasWBS?`toggleWBSDetail('wbs-${code}')`:''}" data-code="${code}" title="${hasWBS?'Clique para ver a WBS deste projeto':''}">
+      <td><div class="pname">${hasWBS?`<span class="expand-icon" id="icon-wbs-${code}">▶</span> `:''}${name||editCell(code,'name',name,'Nome')}</div>
           <div class="pcode">${code}</div></td>
-      <td>${sponsor || editCell(code,'sponsor',sponsor,'Sponsor')}</td>
+      <td class="num">${e.ev>0?Math.round(pct(p['% Executado *'])*100)+'%':editCell(code,'exec','','% exec')}</td>
       <td><span class="pill ${e.rag}">${ragLabel[e.rag]}</span></td>
-      <td class="num ${cpiClass(e.cpi)}">${e.cpi !== null ? e.cpi.toFixed(2) : editCell(code,'cpi','','CPI')}</td>
-      <td class="num ${spiClass(e.spi)}">${e.spi !== null ? e.spi.toFixed(2) : editCell(code,'spi','','SPI')}</td>
-      <td class="num">${e.ev > 0 ? Math.round(pct(p['% Executado *'])*100)+'%' : editCell(code,'exec','','% exec')}</td>
-      <td class="num">${e.bac > 0 ? fmtBRL(e.bac) : editCell(code,'bac','','BAC')}</td>
-      <td class="num ${e.vac !== null ? (e.vac >= 0 ? 'good':'bad') : ''}">${e.vac !== null ? (e.vac >= 0?'+':'')+fmtBRL(e.vac) : '—'}</td>
-      <td class="num">${retrabStr} ${cqStr}</td>
-      <td style="text-align:center">${latestSent !== null ? `<span class="sent-emoji">${sentEmoji(latestSent)}</span> <span class="sent-score">${latestSent}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
-      <td style="text-align:center">${crCount > 0 ? `<span style="font-weight:600;color:var(--amber)">${crCount}</span>` : '<span style="color:var(--muted)">0</span>'}</td>
-      <td>${milestoneLabel || editCell(code,'milestone',milestone,'Próximo marco')}</td>
-    </tr>`;
+      <td class="num ${cpiClass(e.cpi)}">${e.cpi!==null?e.cpi.toFixed(2):editCell(code,'cpi','','CPI')}</td>
+      <td class="num ${spiClass(e.spi)}">${e.spi!==null?e.spi.toFixed(2):editCell(code,'spi','','SPI')}</td>
+      <td class="num">${e.ev>0?fmtBRL(e.ev):'—'}</td>
+      <td class="num">${e.bac>0?fmtBRL(e.bac):editCell(code,'bac','','BAC')}</td>
+      <td class="num ${e.vac!==null?(e.vac>=0?'good':'bad'):''}">${e.vac!==null?(e.vac>=0?'+':'')+fmtBRL(e.vac):'—'}</td>
+      <td>${sponsor||editCell(code,'sponsor',sponsor,'Sponsor')}</td>
+      <td style="text-align:center">${latentSent!==null?`<span class="sent-emoji">${sentEmoji(latentSent)}</span> <span style="font-size:12px;font-weight:600">${latentSent}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${msLabel||editCell(code,'milestone',milestone,'Marco')}</td>
+    </tr>
+    ${hasWBS?`<tr class="wbs-detail-row" id="wbs-${code}" style="display:none"><td colspan="${COLS}">${wbsRows}</td></tr>`:''}`
   }).join('');
 
-  // Scatter chart
+  // CPI×SPI scatter
   if (chartScatter) chartScatter.destroy();
-  const colorByRag = { green:'#2f7d4f', amber:'#b87a00', red:'#b3261e' };
-  chartScatter = new Chart(document.getElementById('scatterChart'), {
+  const colorByRag={green:'#2f7d4f',amber:'#b87a00',red:'#b3261e'};
+  chartScatter=new Chart(document.getElementById('scatterChart'),{
     type:'scatter',
-    data:{ datasets: evms.filter(x=>x.e.cpi!==null&&x.e.spi!==null).map(({p,e}) => ({
-      label: p['Código *']||p['Código']||'',
-      data:[{x:e.spi, y:e.cpi}],
-      backgroundColor: colorByRag[e.rag],
-      borderColor: colorByRag[e.rag],
-      pointRadius:9, pointHoverRadius:12,
+    data:{datasets:evms.filter(x=>x.e.cpi!==null&&x.e.spi!==null).map(({p,e})=>({
+      label:p['Código *']||p['Código']||'',
+      data:[{x:e.spi,y:e.cpi}],
+      backgroundColor:colorByRag[e.rag],borderColor:colorByRag[e.rag],
+      pointRadius:9,pointHoverRadius:12,
     }))},
     options:{
       plugins:{
         legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}},
-        tooltip:{callbacks:{label:ctx=>{
-          const x=ctx.parsed.x.toFixed(2),y=ctx.parsed.y.toFixed(2);
-          return `${ctx.dataset.label}: SPI ${x} · CPI ${y}`;
-        }}}
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: SPI ${ctx.parsed.x.toFixed(2)} · CPI ${ctx.parsed.y.toFixed(2)}`}}
       },
       scales:{
         x:{title:{display:true,text:'SPI (cronograma)'},suggestedMin:.6,suggestedMax:1.2,grid:{color:'#eee'}},
@@ -740,405 +1005,422 @@ function renderPanorama() {
       }
     },
     plugins:[{id:'refLines',beforeDraw(chart){
-      const {ctx,chartArea,scales}=chart;
-      const x1=scales.x.getPixelForValue(1), y1=scales.y.getPixelForValue(1);
-      ctx.save(); ctx.strokeStyle='#bbb'; ctx.setLineDash([4,4]);
+      const{ctx,chartArea,scales}=chart;
+      const x1=scales.x.getPixelForValue(1),y1=scales.y.getPixelForValue(1);
+      ctx.save();ctx.strokeStyle='#bbb';ctx.setLineDash([4,4]);
       ctx.beginPath();
       ctx.moveTo(x1,chartArea.top);ctx.lineTo(x1,chartArea.bottom);
       ctx.moveTo(chartArea.left,y1);ctx.lineTo(chartArea.right,y1);
-      ctx.stroke(); ctx.restore();
+      ctx.stroke();ctx.restore();
     }}]
   });
 
-  // Risk chart
-  if (chartRisk) chartRisk.destroy();
-  const rCounts = {Alto:0,Médio:0,Baixo:0};
-  STATE.riscos.forEach(r => {
-    const prob   = num(r['Probabilidade\n(1–5) *']||r['Probabilidade (1–5) *']||0);
-    const imp    = num(r['Impacto\n(1–5) *']||r['Impacto (1–5) *']||0);
-    const score  = prob * imp;
-    const status = (r['Status']||'').toLowerCase();
-    if (status==='fechado'||status==='encerrado') return;
-    if (score >= 15) rCounts['Alto']++;
-    else if (score >= 6) rCounts['Médio']++;
-    else if (score > 0) rCounts['Baixo']++;
+  // Heat map + risk table
+  renderRiskHeatMap();
+  renderRiskTable();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Risk Heat Map — Matriz P×I (padrão PMI)
+// ═══════════════════════════════════════════════════════════════════════════
+function renderRiskHeatMap() {
+  const container = document.getElementById('heatmap-container');
+
+  const openRiscos = STATE.riscos.filter(r => {
+    const st = (r['Status']||'').toLowerCase();
+    return st !== 'fechado' && st !== 'encerrado';
   });
-  chartRisk = new Chart(document.getElementById('riskChart'),{
-    type:'bar',
-    data:{labels:Object.keys(rCounts),datasets:[{
-      data:Object.values(rCounts),
-      backgroundColor:['#b3261e','#b87a00','#2f7d4f'],borderRadius:4,
-    }]},
-    options:{
-      plugins:{legend:{display:false}},
-      indexAxis:'y',
-      scales:{
-        x:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#eee'}},
-        y:{grid:{display:false}},
-      }
+
+  // Cell color by score
+  function cellClass(score) {
+    if (score >= 20) return 'hm-critical';
+    if (score >= 15) return 'hm-high';
+    if (score >=  6) return 'hm-medium';
+    return 'hm-low';
+  }
+  function chipClass(score) {
+    if (score >= 15) return 'chip-high';
+    if (score >=  6) return 'chip-medium';
+    return 'chip-low';
+  }
+
+  // Build grid rows (P=5 on top → P=1 on bottom)
+  let gridHtml = '';
+  for (let p = 5; p >= 1; p--) {
+    for (let i = 1; i <= 5; i++) {
+      const score = p * i;
+      const cls   = cellClass(score);
+      // Find risks in this cell
+      const cellRisks = openRiscos.filter(r => {
+        const rp = Math.round(num(r['Probabilidade\n(1–5) *']||r['Probabilidade (1–5) *']||0));
+        const ri = Math.round(num(r['Impacto\n(1–5) *']||r['Impacto (1–5) *']||0));
+        return rp === p && ri === i;
+      });
+      const chips = cellRisks.map(r => {
+        const id   = r['ID *']||r['ID']||'?';
+        const proj = r['Código Projeto *']||r['Código Projeto']||'';
+        const desc = escHtml(r['Descrição *']||r['Descrição']||'');
+        return `<span class="risk-chip ${chipClass(score)}" title="${proj}: ${desc}">${id}</span>`;
+      }).join('');
+      gridHtml += `<div class="hm-cell ${cls}" title="P=${p} × I=${i} = ${score}">${chips}<span class="hm-score">${score}</span></div>`;
     }
-  });
+  }
+
+  container.innerHTML = `
+    <div class="hm-wrap">
+      <div class="hm-axis-title" style="writing-mode:horizontal-tb;margin-bottom:4px">← Impacto →</div>
+      <div class="hm-body">
+        <div class="hm-y-axis">
+          ${[5,4,3,2,1].map(n=>`<div class="hm-y-tick">${n}</div>`).join('')}
+        </div>
+        <div class="hm-grid-col">
+          <div class="hm-grid">${gridHtml}</div>
+          <div class="hm-x-row">${[1,2,3,4,5].map(n=>`<div class="hm-x-tick">${n}</div>`).join('')}</div>
+          <div class="hm-x-label" style="margin-top:2px;font-size:10px;color:var(--muted)">← Impacto →</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:2px">↑ Probabilidade</div>
+      <div class="hm-legend">
+        <div class="hm-leg"><div class="hm-leg-dot" style="background:#d94c44"></div>Crítico (20–25)</div>
+        <div class="hm-leg"><div class="hm-leg-dot" style="background:var(--red-bg);border:1px solid var(--red)"></div>Alto (15–19)</div>
+        <div class="hm-leg"><div class="hm-leg-dot" style="background:var(--amber-bg);border:1px solid var(--amber)"></div>Médio (6–14)</div>
+        <div class="hm-leg"><div class="hm-leg-dot" style="background:var(--green-bg);border:1px solid var(--green)"></div>Baixo (1–5)</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Risk detail table
+// ═══════════════════════════════════════════════════════════════════════════
+function renderRiskTable() {
+  const openRiscos = STATE.riscos
+    .filter(r => {
+      const st = (r['Status']||'').toLowerCase();
+      return st !== 'fechado' && st !== 'encerrado';
+    })
+    .map(r => {
+      const prob  = num(r['Probabilidade\n(1–5) *']||r['Probabilidade (1–5) *']||0);
+      const imp   = num(r['Impacto\n(1–5) *']||r['Impacto (1–5) *']||0);
+      return {...r, _score: prob*imp, _p: prob, _i: imp};
+    })
+    .sort((a,b) => b._score - a._score);
+
+  if (openRiscos.length === 0) {
+    document.getElementById('no-risks-msg').style.display='';
+    document.getElementById('riskTable').style.display='none';
+    return;
+  }
+  document.getElementById('no-risks-msg').style.display='none';
+  document.getElementById('riskTable').style.display='';
+
+  function sevClass(score) {
+    if (score >= 15) return 'sev-alto';
+    if (score >= 6)  return 'sev-medio';
+    return 'sev-baixo';
+  }
+  function sevLabel(score) {
+    if (score >= 15) return 'Alto';
+    if (score >= 6)  return 'Médio';
+    return 'Baixo';
+  }
+
+  document.getElementById('riskRows').innerHTML = openRiscos.map(r => {
+    const sc = r._score;
+    return `<tr>
+      <td>${r['Código Projeto *']||r['Código Projeto']||''}</td>
+      <td style="font-weight:600">${r['ID *']||r['ID']||''}</td>
+      <td>${r['Tipo']||''}</td>
+      <td style="max-width:280px;font-size:12px">${r['Descrição *']||r['Descrição']||''}</td>
+      <td class="num" style="text-align:center">${r._p||'—'}</td>
+      <td class="num" style="text-align:center">${r._i||'—'}</td>
+      <td class="num ${sc>=15?'bad':sc>=6?'warn':'good'}" style="text-align:center;font-weight:700">${sc||'—'}</td>
+      <td><span class="risk-sev ${sevClass(sc)}">${sevLabel(sc)}</span></td>
+      <td>${r['Responsável']||'—'}</td>
+      <td>${r['Status']||'—'}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Escopo & Qualidade render
 // ═══════════════════════════════════════════════════════════════════════════
 function renderEscopo() {
-  const evms = STATE.projects.map(p => ({ p, e: calcEVM(p) }));
-  const totalRetrab  = evms.reduce((s,x) => s + x.e.retrab, 0);
-  const totalRetHrs  = evms.reduce((s,x) => s + num(x.p['Retrabalho (horas)']), 0);
-  const totalBugsF   = evms.reduce((s,x) => s + x.e.bugs_f, 0);
-  const totalBugsR   = evms.reduce((s,x) => s + x.e.bugs_r, 0);
-  const totalCRs     = STATE.mudancas.length;
-  const approvedCRs  = STATE.mudancas.filter(m => (m['Status']||'').toLowerCase() === 'aprovada').length;
-  const crImpactCost = STATE.mudancas
-    .filter(m => (m['Status']||'').toLowerCase() === 'aprovada')
-    .reduce((s,m) => s + num(m['Impacto custo (R$)']), 0);
+  const evms = STATE.projects.map(p=>({p,e:calcEVM(p)}));
+  const totalRetrab = evms.reduce((s,x)=>s+x.e.retrab,0);
+  const totalRetHrs = evms.reduce((s,x)=>s+num(x.p['Retrabalho (horas)']),0);
+  const totalBugsF  = evms.reduce((s,x)=>s+x.e.bugs_f,0);
+  const totalBugsR  = evms.reduce((s,x)=>s+x.e.bugs_r,0);
+  const approvedCRs = STATE.mudancas.filter(m=>(m['Status']||'').toLowerCase()==='aprovada').length;
+  const crImpact    = STATE.mudancas
+    .filter(m=>(m['Status']||'').toLowerCase()==='aprovada')
+    .reduce((s,m)=>s+num(m['Impacto custo (R$)']),0);
 
-  document.getElementById('qualityKpis').innerHTML = `
+  document.getElementById('qualityKpis').innerHTML=`
     <div class="q-card">
-      <div class="q-label">Retrabalho total (R$)</div>
+      <div class="q-label">Retrabalho total</div>
       <div class="q-value">${fmtBRL(totalRetrab)}</div>
-      <div class="q-sub">${totalRetHrs > 0 ? totalRetHrs + ' horas' : ''}</div>
+      <div class="q-sub">${totalRetHrs>0?totalRetHrs+' horas registradas':''}</div>
     </div>
     <div class="q-card">
-      <div class="q-label">CRs registrados</div>
-      <div class="q-value">${totalCRs}</div>
-      <div class="q-sub">${approvedCRs} aprovados · impacto ${fmtBRL(crImpactCost)}</div>
+      <div class="q-label">CRs aprovados</div>
+      <div class="q-value">${approvedCRs} / ${STATE.mudancas.length}</div>
+      <div class="q-sub">impacto ${fmtBRL(crImpact)}</div>
     </div>
     <div class="q-card">
       <div class="q-label">Bugs (TI)</div>
       <div class="q-value">${totalBugsF}</div>
-      <div class="q-sub">${totalBugsR} resolvidos · ${totalBugsF > 0 ? Math.round(totalBugsR/totalBugsF*100) : '—'}% de resolução</div>
+      <div class="q-sub">${totalBugsR} resolvidos · ${totalBugsF>0?Math.round(totalBugsR/totalBugsF*100):'—'}% resolução</div>
     </div>
   `;
 
-  // Rework table
-  document.getElementById('retrabalhoRows').innerHTML = evms.map(({p, e}) => {
-    const code    = p['Código *'] || p['Código'] || '';
-    const name    = p['Nome do Projeto'] || code;
-    const hours   = num(p['Retrabalho (horas)']);
-    const cqPct   = e.cq !== null ? (e.cq*100).toFixed(1) + '%' : '—';
-    const cqClass = e.cq !== null ? (e.cq > 0.10 ? 'bad' : e.cq > 0.05 ? 'warn' : 'good') : '';
-    const resolv  = e.bugs_f > 0 ? Math.round(e.bugs_r/e.bugs_f*100) + '%' : '—';
+  document.getElementById('retrabalhoRows').innerHTML=evms.map(({p,e})=>{
+    const code  = p['Código *']||p['Código']||'';
+    const name  = p['Nome do Projeto']||code;
+    const hours = num(p['Retrabalho (horas)']);
+    const cqPct = e.cq!==null?(e.cq*100).toFixed(1)+'%':'—';
+    const cqCls = e.cq!==null?(e.cq>0.10?'bad':e.cq>0.05?'warn':'good'):'';
+    const resolv= e.bugs_f>0?Math.round(e.bugs_r/e.bugs_f*100)+'%':'—';
     return `<tr>
       <td><div class="pname">${name}</div><div class="pcode">${code}</div></td>
-      <td class="num">${hours > 0 ? hours + ' h' : '—'}</td>
-      <td class="num">${e.retrab > 0 ? fmtBRL(e.retrab) : '—'}</td>
-      <td class="num ${cqClass}">${cqPct}</td>
-      <td class="num">${e.bugs_f > 0 ? e.bugs_f : '—'}</td>
-      <td class="num">${e.bugs_r > 0 ? e.bugs_r : '—'}</td>
+      <td class="num">${hours>0?hours+' h':'—'}</td>
+      <td class="num">${e.retrab>0?fmtBRL(e.retrab):'—'}</td>
+      <td class="num ${cqCls}">${cqPct}</td>
+      <td class="num">${e.bugs_f>0?e.bugs_f:'—'}</td>
+      <td class="num">${e.bugs_r>0?e.bugs_r:'—'}</td>
       <td class="num">${resolv}</td>
     </tr>`;
   }).join('');
 
-  // Scope changes table
-  if (STATE.mudancas.length === 0) {
-    document.getElementById('no-crs').style.display = '';
-    document.getElementById('crsTable').style.display = 'none';
+  if (!STATE.mudancas.length) {
+    document.getElementById('no-crs').style.display='';
+    document.getElementById('crsTable').style.display='none';
   } else {
-    document.getElementById('no-crs').style.display = 'none';
-    document.getElementById('crsTable').style.display = '';
-    document.getElementById('crsRows').innerHTML = STATE.mudancas.map(m => {
-      const status  = m['Status'] || '';
-      const sClass  = status.toLowerCase() === 'aprovada' ? 'cr-aprovada' :
-                      status.toLowerCase() === 'rejeitada' ? 'cr-rejeitada' : 'cr-pendente';
-      const dias    = num(m['Impacto prazo (dias)']);
-      const custo   = num(m['Impacto custo (R$)']);
+    document.getElementById('no-crs').style.display='none';
+    document.getElementById('crsTable').style.display='';
+    document.getElementById('crsRows').innerHTML=STATE.mudancas.map(m=>{
+      const status = m['Status']||'';
+      const sCls   = status.toLowerCase()==='aprovada'?'cr-aprovada':status.toLowerCase()==='rejeitada'?'cr-rejeitada':'cr-pendente';
+      const dias   = num(m['Impacto prazo (dias)']);
+      const custo  = num(m['Impacto custo (R$)']);
       return `<tr>
         <td>${m['Código Projeto *']||m['Código Projeto']||''}</td>
         <td>${m['ID *']||m['ID']||''}</td>
         <td>${fmtDate(m['Data *']||m['Data']||'')}</td>
-        <td>${m['Descrição *']||m['Descrição']||''}</td>
-        <td class="num">${dias !== 0 ? (dias > 0 ? '+':'')+dias+'d' : '—'}</td>
-        <td class="num ${custo > 0 ? 'bad' : custo < 0 ? 'good' : ''}">${custo !== 0 ? (custo > 0 ? '+':'')+fmtBRL(custo) : '—'}</td>
+        <td style="font-size:12px">${m['Descrição *']||m['Descrição']||''}</td>
+        <td class="num">${dias!==0?(dias>0?'+':'')+dias+'d':'—'}</td>
+        <td class="num ${custo>0?'bad':custo<0?'good':''}">${custo!==0?(custo>0?'+':'')+fmtBRL(custo):'—'}</td>
         <td>${m['Aprovador']||'—'}</td>
-        <td><span class="cr-badge ${sClass}">${status||'—'}</span></td>
+        <td><span class="cr-badge ${sCls}">${status||'—'}</span></td>
       </tr>`;
     }).join('');
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Sentimento render
-// ═══════════════════════════════════════════════════════════════════════════
-function renderSentimento() {
-  const PROJ_COLORS = ['#2b3a55','#3b5998','#5b7ec1','#8aaee0','#2f7d4f','#b87a00'];
-
-  if (STATE.sentimento.length === 0) {
-    document.getElementById('no-sent').style.display = '';
-    document.getElementById('sentChart').style.display = 'none';
-    document.getElementById('sentRows').innerHTML = '';
-    return;
-  }
-  document.getElementById('no-sent').style.display = 'none';
-  document.getElementById('sentChart').style.display = '';
-
-  // Build datasets per project
-  const allDates = [...new Set(
-    STATE.sentimento.map(s => fmtDate(s['Data *']||s['Data']||'')).filter(Boolean)
-  )].sort();
-
-  const datasets = STATE.projects.map((p, i) => {
-    const code = p['Código *'] || p['Código'] || '';
-    const rows = STATE.sentimento
-      .filter(s => (s['Código Projeto *']||s['Código Projeto']||'') === code)
-      .sort((a,b) => String(a['Data *']||'').localeCompare(String(b['Data *']||'')));
-    if (!rows.length) return null;
-    return {
-      label: code,
-      data: rows.map(s => ({
-        x: fmtDate(s['Data *']||s['Data']||''),
-        y: num(s['Nota do time (1–10) *'] || s['Nota do time (1-10) *'] || 0)
-      })),
-      borderColor: PROJ_COLORS[i % PROJ_COLORS.length],
-      backgroundColor: PROJ_COLORS[i % PROJ_COLORS.length] + '33',
-      tension: 0.3,
-      pointRadius: 5,
-      fill: false,
-    };
-  }).filter(Boolean);
-
-  if (chartSent) chartSent.destroy();
-  chartSent = new Chart(document.getElementById('sentChart'), {
-    type: 'line',
-    data: { datasets },
-    options: {
-      plugins: {
-        legend: { position:'bottom', labels:{boxWidth:12,font:{size:11}} },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}/10` } }
-      },
-      scales: {
-        x: { type:'category', title:{display:true,text:'Data de coleta'}, grid:{color:'#eee'} },
-        y: { min:0, max:10, title:{display:true,text:'Nota (1–10)'}, grid:{color:'#eee'},
-             ticks:{ callback: v => v >= 7 ? v+'🟢' : v >= 5 ? v+'🟡' : v > 0 ? v+'🔴' : v } }
-      },
-      interaction: { mode:'index', intersect:false }
-    },
-    plugins:[{id:'alertZone',beforeDraw(chart){
-      const {ctx,chartArea,scales} = chart;
-      ctx.save();
-      ctx.fillStyle = 'rgba(179,38,30,.06)';
-      const y5 = scales.y.getPixelForValue(5);
-      const y0 = scales.y.getPixelForValue(0);
-      ctx.fillRect(chartArea.left, y5, chartArea.right-chartArea.left, y0-y5);
-      ctx.restore();
-    }}]
-  });
-
-  // History table
-  const sorted = [...STATE.sentimento].sort((a,b) =>
-    String(b['Data *']||'').localeCompare(String(a['Data *']||''))
-  );
-  document.getElementById('sentRows').innerHTML = sorted.map(s => {
-    const nota = num(s['Nota do time (1–10) *'] || s['Nota do time (1-10) *'] || 0);
-    return `<tr>
-      <td>${s['Código Projeto *']||s['Código Projeto']||''}</td>
-      <td>${fmtDate(s['Data *']||s['Data']||'')}</td>
-      <td>${s['Período / Sprint *']||s['Período / Sprint']||''}</td>
-      <td style="text-align:center"><span class="sent-emoji">${sentEmoji(nota)}</span> <span class="sent-score num ${nota >= 7?'good':nota>=5?'warn':'bad'}">${nota}/10</span></td>
-      <td style="font-size:12px;color:var(--muted)">${s['Observação']||''}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// WBS render  ← CORRIGIDO: nível 0 conectado ao nível 1
+// WBS render — CORRIGIDO: nível 0 → nível 1 conectados
 // ═══════════════════════════════════════════════════════════════════════════
 function buildWBSSelector() {
-  const sel = document.getElementById('proj-select');
-  sel.innerHTML = '';
-  STATE.projects.forEach(p => {
-    const code = p['Código *']||p['Código']||'';
-    const name = p['Nome do Projeto']||code;
-    const opt  = document.createElement('option');
-    opt.value  = code;
-    opt.textContent = `${code} — ${name}`;
+  const sel=document.getElementById('proj-select'); sel.innerHTML='';
+  STATE.projects.forEach(p=>{
+    const code=p['Código *']||p['Código']||'';
+    const name=p['Nome do Projeto']||code;
+    const opt=document.createElement('option');
+    opt.value=code; opt.textContent=`${code} — ${name}`;
     sel.appendChild(opt);
   });
 }
 
 function renderWBS() {
-  const sel       = document.getElementById('proj-select');
-  const code      = sel.value;
-  const container = document.getElementById('wbs-tree');
-  const emptyMsg  = document.getElementById('wbs-empty');
-  container.innerHTML = '';
+  const sel=document.getElementById('proj-select');
+  const code=sel.value;
+  const container=document.getElementById('wbs-tree');
+  const emptyMsg=document.getElementById('wbs-empty');
+  container.innerHTML='';
 
-  const items = STATE.wbs.filter(w =>
-    (w['Código Projeto *']||w['Código Projeto']||'') === code
-  );
-  if (!items.length) { emptyMsg.style.display=''; return; }
-  emptyMsg.style.display = 'none';
+  const items=STATE.wbs.filter(w=>(w['Código Projeto *']||w['Código Projeto']||'')===code);
+  if (!items.length){emptyMsg.style.display='';return;}
+  emptyMsg.style.display='none';
 
-  const nodes = items.map(w => ({
-    wbsCode: String(w['Código WBS *']||w['Código WBS']||''),
-    level:   parseInt(w['Nível *']||w['Nível']||0),
-    desc:    w['Descrição *']||w['Descrição']||'',
+  const nodes=items.map(w=>({
+    wbsCode:String(w['Código WBS *']||w['Código WBS']||''),
+    level:parseInt(w['Nível *']||w['Nível']||0),
+    desc:w['Descrição *']||w['Descrição']||'',
     children:[],
-  })).sort((a,b) => a.wbsCode.localeCompare(b.wbsCode, undefined, {numeric:true}));
+  })).sort((a,b)=>a.wbsCode.localeCompare(b.wbsCode,undefined,{numeric:true}));
 
-  // ── Parent-finding: corrigido para nível 0 → nível 1 ──────────────────
   function findParent(nodes, node) {
-    if (node.level === 0) return null;   // nível 0 é sempre raiz
-    const parts = node.wbsCode.split('.');
-    if (parts.length > 1) {
-      // notação com ponto: "1.2" → pai é "1", "1.2.3" → pai é "1.2"
+    if (node.level===0) return null;           // nível 0 = raiz
+    const parts=node.wbsCode.split('.');
+    if (parts.length>1) {                      // "1.2" → pai "1"
       parts.pop();
-      return nodes.find(n => n.wbsCode === parts.join('.')) || null;
+      return nodes.find(n=>n.wbsCode===parts.join('.'))||null;
     }
-    // código de segmento único (ex: "1", "2", "3") com nível > 0
-    // → conectar ao item de nível 0 (raiz do projeto)
-    return nodes.find(n => n.level === node.level - 1) || null;
+    // código simples ("1","2","3") → pai é o nível 0
+    return nodes.find(n=>n.level===node.level-1)||null;
   }
 
-  const roots = [];
-  nodes.forEach(n => {
-    const parent = findParent(nodes, n);
+  const roots=[];
+  nodes.forEach(n=>{
+    const parent=findParent(nodes,n);
     if (parent) parent.children.push(n);
     else roots.push(n);
   });
 
-  function renderNode(node) {
-    const li = document.createElement('li');
-    const box = document.createElement('div');
-    box.className = `org-node lvl-${Math.min(node.level, 3)}`;
-    box.textContent = node.desc;
-    li.appendChild(box);
-    if (node.children.length > 0) {
-      const btn = document.createElement('span');
-      btn.className = 'tree-toggle';
-      btn.textContent = '−';
-      btn.title = 'Expandir / recolher';
+  function renderNode(node){
+    const li=document.createElement('li');
+    const box=document.createElement('div');
+    box.className=`org-node lvl-${Math.min(node.level,3)}`;
+    box.textContent=node.desc; li.appendChild(box);
+    if (node.children.length>0){
+      const btn=document.createElement('span');
+      btn.className='tree-toggle'; btn.textContent='−'; btn.title='Expandir/recolher';
       li.appendChild(btn);
-      const ul = document.createElement('ul');
-      node.children.forEach(child => ul.appendChild(renderNode(child)));
+      const ul=document.createElement('ul');
+      node.children.forEach(child=>ul.appendChild(renderNode(child)));
       li.appendChild(ul);
-      btn.onclick = e => {
+      btn.onclick=e=>{
         e.stopPropagation();
-        const hidden = ul.style.display === 'none';
-        ul.style.display = hidden ? '' : 'none';
-        btn.textContent = hidden ? '−' : '+';
+        const hidden=ul.style.display==='none';
+        ul.style.display=hidden?'':'none';
+        btn.textContent=hidden?'−':'+';
       };
     }
     return li;
   }
 
-  const rootUl = document.createElement('ul');
-  rootUl.className = 'tree tree-root';
-  roots.forEach(r => rootUl.appendChild(renderNode(r)));
+  const rootUl=document.createElement('ul');
+  rootUl.className='tree tree-root';
+  roots.forEach(r=>rootUl.appendChild(renderNode(r)));
   container.appendChild(rootUl);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Export
+// Export xlsx
 // ═══════════════════════════════════════════════════════════════════════════
 function exportXLSX() {
-  if (!STATE.loaded) { toast('Carregue um arquivo primeiro.'); return; }
-  STATE.projects.forEach(p => {
-    const code = p['Código *']||p['Código']||'';
-    ['name','sponsor','milestone','mdate'].forEach(field => {
-      const v = EDITS[`${code}_${field}`];
-      if (v !== undefined) {
-        const map = {name:'Nome do Projeto',sponsor:'Sponsor',milestone:'Próximo Marco',mdate:'Data Marco'};
-        p[map[field]] = v;
+  if (!STATE.loaded){toast('Carregue um arquivo primeiro.');return;}
+  STATE.projects.forEach(p=>{
+    const code=p['Código *']||p['Código']||'';
+    ['name','sponsor','milestone','mdate'].forEach(field=>{
+      const v=EDITS[`${code}_${field}`];
+      if (v!==undefined){
+        const map={name:'Nome do Projeto',sponsor:'Sponsor',milestone:'Próximo Marco',mdate:'Data Marco'};
+        p[map[field]]=v;
       }
     });
   });
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(STATE.projects),   'PROJETOS');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(STATE.marcos),     'MARCOS');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(STATE.riscos),     'RISCOS');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(STATE.wbs),        'WBS');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(STATE.mudancas),   'MUDANCAS_ESCOPO');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(STATE.sentimento), 'SENTIMENTO');
-  XLSX.writeFile(wb, `projetos-evm-v2-${new Date().toISOString().slice(0,10)}.xlsx`);
-  toast('Arquivo exportado com sucesso!');
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.projects),'PROJETOS');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.riscos),'RISCOS');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.wbs),'WBS');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.mudancas),'MUDANCAS_ESCOPO');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.sentimento),'SENTIMENTO');
+  XLSX.writeFile(wb,`projetos-evm-v2-${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Exportado com sucesso!');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Inline edit helpers
+// Helpers
 // ═══════════════════════════════════════════════════════════════════════════
-function editCell(code, field, current, placeholder) {
-  const key = `${code}_${field}`;
-  const val = EDITS[key] !== undefined ? EDITS[key] : (current || '');
-  return `<span contenteditable="true" data-ph="— ${placeholder}" data-key="${key}"
-    onblur="saveEdit(this)">${escHtml(val)}</span>`;
+function editCell(code,field,current,placeholder){
+  const key=`${code}_${field}`;
+  const val=EDITS[key]!==undefined?EDITS[key]:(current||'');
+  return `<span contenteditable="true" data-ph="— ${placeholder}" data-key="${key}" onblur="saveEdit(this)">${escHtml(val)}</span>`;
 }
-function saveEdit(el)  { EDITS[el.dataset.key] = el.textContent.trim(); }
-function getEdit(code, field) { return EDITS[`${code}_${field}`] || null; }
+function saveEdit(el){EDITS[el.dataset.key]=el.textContent.trim();}
+function getEdit(code,field){return EDITS[`${code}_${field}`]||null;}
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Sentiment helpers
-// ═══════════════════════════════════════════════════════════════════════════
-function getLatestSentimento(code) {
-  const rows = STATE.sentimento
-    .filter(s => (s['Código Projeto *']||s['Código Projeto']||'') === code)
-    .sort((a,b) => String(b['Data *']||'').localeCompare(String(a['Data *']||'')));
-  if (!rows.length) return null;
-  return num(rows[0]['Nota do time (1–10) *'] || rows[0]['Nota do time (1-10) *'] || 0);
-}
-function sentEmoji(n) { return n >= 7 ? '🟢' : n >= 5 ? '🟡' : n > 0 ? '🔴' : ''; }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// UI helpers
-// ═══════════════════════════════════════════════════════════════════════════
-function switchTab(name, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${name}`).classList.add('active');
-  if (name === 'wbs') renderWBS();
-}
-function toggleAccordion(btn) {
-  btn.classList.toggle('open');
-  btn.nextElementSibling.classList.toggle('open');
-}
-function toast(msg, isErr) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.background = isErr ? '#b3261e' : '#1a1a1a';
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Number / format helpers
-// ═══════════════════════════════════════════════════════════════════════════
-function num(v)   { return parseFloat(v) || 0; }
-function pct(v)   { const n = parseFloat(v); if (isNaN(n)) return 0; return n > 1 ? n/100 : n; }
-function fmtBRL(n) {
-  if (n === null || n === undefined || isNaN(n)) return '—';
-  const abs = Math.abs(n), sign = n < 0 ? '−' : '';
-  if (abs >= 1e6) return sign + 'R$ ' + (abs/1e6).toFixed(2) + ' M';
-  if (abs >= 1e3) return sign + 'R$ ' + Math.round(abs/1e3) + ' k';
-  return sign + 'R$ ' + abs.toFixed(0);
-}
-function fmtDate(v) { if (!v) return ''; if (v instanceof Date) return v.toISOString().slice(0,10); return String(v).slice(0,10); }
-function fmtNow()   { return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
-function cpiClass(v) { return v===null?'':v>=0.95?'good':v>=0.85?'warn':'bad'; }
-function spiClass(v) { return v===null?'':v>=0.95?'good':v>=0.85?'warn':'bad'; }
-function escHtml(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Floating tooltip
-// ═══════════════════════════════════════════════════════════════════════════
-(function(){
-  const tip = document.getElementById('ftip');
-  let active = false;
-  document.querySelectorAll('[data-tip]').forEach(el => {
-    el.addEventListener('mouseenter', e => { tip.textContent = el.dataset.tip; tip.classList.add('on'); active = true; move(e); });
-    el.addEventListener('mousemove', move);
-    el.addEventListener('mouseleave', () => { tip.classList.remove('on'); active = false; });
+// Busca o próximo marco (Tipo=Marco) da WBS com data futura para o projeto
+function getProximoMarco(code) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const marcos = STATE.wbs.filter(w => {
+    const proj = w['Código Projeto *']||w['Código Projeto']||'';
+    const tipo = (w['Tipo *']||w['Tipo']||'').toLowerCase();
+    return proj === code && tipo === 'marco' && (w['Data']||w['Data *']);
   });
-  function move(e) {
-    if (!active) return;
-    const W = tip.offsetWidth||260, H = tip.offsetHeight||80;
-    const vw = window.innerWidth, vh = window.innerHeight;
-    let x = e.clientX + 14, y = e.clientY - H - 10;
-    if (x + W > vw - 6) x = e.clientX - W - 14;
-    if (y < 6) y = e.clientY + 20;
-    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  if (!marcos.length) return null;
+  // Ordena por data e pega o próximo (data >= hoje) ou o último se todos passados
+  const sorted = marcos.sort((a,b)=>{
+    const da = new Date(a['Data']||a['Data *']||0);
+    const db = new Date(b['Data']||b['Data *']||0);
+    return da - db;
+  });
+  const next = sorted.find(m => new Date(m['Data']||m['Data *']) >= today);
+  const chosen = next || sorted[sorted.length - 1];
+  const desc = (chosen['Descrição *']||chosen['Descrição']||'').replace(/^🏁\s*/,'');
+  const data = chosen['Data']||chosen['Data *']||'';
+  return {desc, data};
+}
+
+function getLatestSentimento(code){
+  const rows=STATE.sentimento
+    .filter(s=>(s['Código Projeto *']||s['Código Projeto']||'')===code)
+    .sort((a,b)=>String(b['Data *']||'').localeCompare(String(a['Data *']||'')));
+  if (!rows.length) return null;
+  return num(rows[0]['Nota do time (1–10) *']||rows[0]['Nota do time (1-10) *']||0);
+}
+function sentEmoji(n){return n>=7?'🟢':n>=5?'🟡':n>0?'🔴':'';}
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  if (name==='wbs') renderWBS();
+}
+function toggleAccordion(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+function toast(msg,isErr){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=isErr?'#b3261e':'#1a1a1a';
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+function num(v){return parseFloat(v)||0;}
+function pct(v){const n=parseFloat(v);if(isNaN(n))return 0;return n>1?n/100:n;}
+function fmtBRL(n){
+  if(n===null||n===undefined||isNaN(n))return '—';
+  const abs=Math.abs(n),sign=n<0?'−':'';
+  if(abs>=1e6) return sign+'R$ '+(abs/1e6).toFixed(2)+' M';
+  if(abs>=1e3) return sign+'R$ '+Math.round(abs/1e3)+' k';
+  return sign+'R$ '+abs.toFixed(0);
+}
+function fmtDate(v){if(!v)return '';if(v instanceof Date)return v.toISOString().slice(0,10);return String(v).slice(0,10);}
+function fmtNow(){return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function cpiClass(v){return v===null?'':v>=0.95?'good':v>=0.85?'warn':'bad';}
+function spiClass(v){return v===null?'':v>=0.95?'good':v>=0.85?'warn':'bad';}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Restaurar última planilha Google ao abrir a página ───────────────────
+(function(){
+  try {
+    const saved = localStorage.getItem('evm_sheetsId');
+    if (saved) {
+      document.getElementById('sheetIdInput').value = saved;
+      STATE.sheetsId = saved; // permite que refreshBtn funcione mesmo sem recarregar
+      // Mostra faixa discreta no painel de sheets
+      const note = document.createElement('p');
+      note.className = 'sp-note';
+      note.style.cssText = 'margin-top:10px;color:rgba(255,255,255,.8)';
+      note.innerHTML = `💾 Última planilha usada pré-carregada. <a href="#" style="color:#8aaee0" onclick="event.preventDefault();loadFromSheets()">Reconectar agora</a>`;
+      document.getElementById('sheetsStatus').after(note);
+    }
+  } catch(e){}
+})();
+
+// ── Floating tooltip ──────────────────────────────────────────────────────
+(function(){
+  const tip=document.getElementById('ftip'); let active=false;
+  document.querySelectorAll('[data-tip]').forEach(el=>{
+    el.addEventListener('mouseenter',e=>{tip.textContent=el.dataset.tip;tip.classList.add('on');active=true;move(e);});
+    el.addEventListener('mousemove',move);
+    el.addEventListener('mouseleave',()=>{tip.classList.remove('on');active=false;});
+  });
+  function move(e){
+    if(!active)return;
+    const W=tip.offsetWidth||260,H=tip.offsetHeight||80;
+    const vw=window.innerWidth;
+    let x=e.clientX+14,y=e.clientY-H-10;
+    if(x+W>vw-6)x=e.clientX-W-14;
+    if(y<6)y=e.clientY+20;
+    tip.style.left=x+'px';tip.style.top=y+'px';
   }
 })();
 </script>

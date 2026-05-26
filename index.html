@@ -1148,4 +1148,281 @@ function renderEscopo() {
   const evms = STATE.projects.map(p=>({p,e:calcEVM(p)}));
   const totalRetrab = evms.reduce((s,x)=>s+x.e.retrab,0);
   const totalRetHrs = evms.reduce((s,x)=>s+num(x.p['Retrabalho (horas)']),0);
-  const totalBugsF  = evms.reduce((s,x)=>s+x
+  const totalBugsF  = evms.reduce((s,x)=>s+x.e.bugs_f,0);
+  const totalBugsR  = evms.reduce((s,x)=>s+x.e.bugs_r,0);
+  const approvedCRs = STATE.mudancas.filter(m=>(m['Status']||'').toLowerCase()==='aprovada').length;
+  const crImpact    = STATE.mudancas
+    .filter(m=>(m['Status']||'').toLowerCase()==='aprovada')
+    .reduce((s,m)=>s+num(m['Impacto custo (R$)']),0);
+
+  document.getElementById('qualityKpis').innerHTML=`
+    <div class="q-card">
+      <div class="q-label">Retrabalho total</div>
+      <div class="q-value">${fmtBRL(totalRetrab)}</div>
+      <div class="q-sub">${totalRetHrs>0?totalRetHrs+' horas registradas':''}</div>
+    </div>
+    <div class="q-card">
+      <div class="q-label">CRs aprovados</div>
+      <div class="q-value">${approvedCRs} / ${STATE.mudancas.length}</div>
+      <div class="q-sub">impacto ${fmtBRL(crImpact)}</div>
+    </div>
+    <div class="q-card">
+      <div class="q-label">Bugs (TI)</div>
+      <div class="q-value">${totalBugsF}</div>
+      <div class="q-sub">${totalBugsR} resolvidos · ${totalBugsF>0?Math.round(totalBugsR/totalBugsF*100):'—'}% resolução</div>
+    </div>
+  `;
+
+  document.getElementById('retrabalhoRows').innerHTML=evms.map(({p,e})=>{
+    const code  = p['Código *']||p['Código']||'';
+    const name  = p['Nome do Projeto']||code;
+    const hours = num(p['Retrabalho (horas)']);
+    const cqPct = e.cq!==null?(e.cq*100).toFixed(1)+'%':'—';
+    const cqCls = e.cq!==null?(e.cq>0.10?'bad':e.cq>0.05?'warn':'good'):'';
+    const resolv= e.bugs_f>0?Math.round(e.bugs_r/e.bugs_f*100)+'%':'—';
+    return `<tr>
+      <td><div class="pname">${name}</div><div class="pcode">${code}</div></td>
+      <td class="num">${hours>0?hours+' h':'—'}</td>
+      <td class="num">${e.retrab>0?fmtBRL(e.retrab):'—'}</td>
+      <td class="num ${cqCls}">${cqPct}</td>
+      <td class="num">${e.bugs_f>0?e.bugs_f:'—'}</td>
+      <td class="num">${e.bugs_r>0?e.bugs_r:'—'}</td>
+      <td class="num">${resolv}</td>
+    </tr>`;
+  }).join('');
+
+  if (!STATE.mudancas.length) {
+    document.getElementById('no-crs').style.display='';
+    document.getElementById('crsTable').style.display='none';
+  } else {
+    document.getElementById('no-crs').style.display='none';
+    document.getElementById('crsTable').style.display='';
+    document.getElementById('crsRows').innerHTML=STATE.mudancas.map(m=>{
+      const status = m['Status']||'';
+      const sCls   = status.toLowerCase()==='aprovada'?'cr-aprovada':status.toLowerCase()==='rejeitada'?'cr-rejeitada':'cr-pendente';
+      const dias   = num(m['Impacto prazo (dias)']);
+      const custo  = num(m['Impacto custo (R$)']);
+      return `<tr>
+        <td>${m['Código Projeto *']||m['Código Projeto']||''}</td>
+        <td>${m['ID *']||m['ID']||''}</td>
+        <td>${fmtDate(m['Data *']||m['Data']||'')}</td>
+        <td style="font-size:12px">${m['Descrição *']||m['Descrição']||''}</td>
+        <td class="num">${dias!==0?(dias>0?'+':'')+dias+'d':'—'}</td>
+        <td class="num ${custo>0?'bad':custo<0?'good':''}">${custo!==0?(custo>0?'+':'')+fmtBRL(custo):'—'}</td>
+        <td>${m['Aprovador']||'—'}</td>
+        <td><span class="cr-badge ${sCls}">${status||'—'}</span></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WBS render — CORRIGIDO: nível 0 → nível 1 conectados
+// ═══════════════════════════════════════════════════════════════════════════
+function buildWBSSelector() {
+  const sel=document.getElementById('proj-select'); sel.innerHTML='';
+  STATE.projects.forEach(p=>{
+    const code=p['Código *']||p['Código']||'';
+    const name=p['Nome do Projeto']||code;
+    const opt=document.createElement('option');
+    opt.value=code; opt.textContent=`${code} — ${name}`;
+    sel.appendChild(opt);
+  });
+}
+
+function renderWBS() {
+  const sel=document.getElementById('proj-select');
+  const code=sel.value;
+  const container=document.getElementById('wbs-tree');
+  const emptyMsg=document.getElementById('wbs-empty');
+  container.innerHTML='';
+
+  const items=STATE.wbs.filter(w=>(w['Código Projeto *']||w['Código Projeto']||'')===code);
+  if (!items.length){emptyMsg.style.display='';return;}
+  emptyMsg.style.display='none';
+
+  const nodes=items.map(w=>({
+    wbsCode:String(w['Código WBS *']||w['Código WBS']||''),
+    level:parseInt(w['Nível *']||w['Nível']||0),
+    desc:w['Descrição *']||w['Descrição']||'',
+    children:[],
+  })).sort((a,b)=>a.wbsCode.localeCompare(b.wbsCode,undefined,{numeric:true}));
+
+  function findParent(nodes, node) {
+    if (node.level===0) return null;           // nível 0 = raiz
+    const parts=node.wbsCode.split('.');
+    if (parts.length>1) {                      // "1.2" → pai "1"
+      parts.pop();
+      return nodes.find(n=>n.wbsCode===parts.join('.'))||null;
+    }
+    // código simples ("1","2","3") → pai é o nível 0
+    return nodes.find(n=>n.level===node.level-1)||null;
+  }
+
+  const roots=[];
+  nodes.forEach(n=>{
+    const parent=findParent(nodes,n);
+    if (parent) parent.children.push(n);
+    else roots.push(n);
+  });
+
+  function renderNode(node){
+    const li=document.createElement('li');
+    const box=document.createElement('div');
+    box.className=`org-node lvl-${Math.min(node.level,3)}`;
+    box.textContent=node.desc; li.appendChild(box);
+    if (node.children.length>0){
+      const btn=document.createElement('span');
+      btn.className='tree-toggle'; btn.textContent='−'; btn.title='Expandir/recolher';
+      li.appendChild(btn);
+      const ul=document.createElement('ul');
+      node.children.forEach(child=>ul.appendChild(renderNode(child)));
+      li.appendChild(ul);
+      btn.onclick=e=>{
+        e.stopPropagation();
+        const hidden=ul.style.display==='none';
+        ul.style.display=hidden?'':'none';
+        btn.textContent=hidden?'−':'+';
+      };
+    }
+    return li;
+  }
+
+  const rootUl=document.createElement('ul');
+  rootUl.className='tree tree-root';
+  roots.forEach(r=>rootUl.appendChild(renderNode(r)));
+  container.appendChild(rootUl);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Export xlsx
+// ═══════════════════════════════════════════════════════════════════════════
+function exportXLSX() {
+  if (!STATE.loaded){toast('Carregue um arquivo primeiro.');return;}
+  STATE.projects.forEach(p=>{
+    const code=p['Código *']||p['Código']||'';
+    ['name','sponsor','milestone','mdate'].forEach(field=>{
+      const v=EDITS[`${code}_${field}`];
+      if (v!==undefined){
+        const map={name:'Nome do Projeto',sponsor:'Sponsor',milestone:'Próximo Marco',mdate:'Data Marco'};
+        p[map[field]]=v;
+      }
+    });
+  });
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.projects),'PROJETOS');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.riscos),'RISCOS');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.wbs),'WBS');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.mudancas),'MUDANCAS_ESCOPO');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(STATE.sentimento),'SENTIMENTO');
+  XLSX.writeFile(wb,`projetos-evm-v2-${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Exportado com sucesso!');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Helpers
+// ═══════════════════════════════════════════════════════════════════════════
+function editCell(code,field,current,placeholder){
+  const key=`${code}_${field}`;
+  const val=EDITS[key]!==undefined?EDITS[key]:(current||'');
+  return `<span contenteditable="true" data-ph="— ${placeholder}" data-key="${key}" onblur="saveEdit(this)">${escHtml(val)}</span>`;
+}
+function saveEdit(el){EDITS[el.dataset.key]=el.textContent.trim();}
+function getEdit(code,field){return EDITS[`${code}_${field}`]||null;}
+
+// Busca o próximo marco (Tipo=Marco) da WBS com data futura para o projeto
+function getProximoMarco(code) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const marcos = STATE.wbs.filter(w => {
+    const proj = w['Código Projeto *']||w['Código Projeto']||'';
+    const tipo = (w['Tipo *']||w['Tipo']||'').toLowerCase();
+    return proj === code && tipo === 'marco' && (w['Data']||w['Data *']);
+  });
+  if (!marcos.length) return null;
+  // Ordena por data e pega o próximo (data >= hoje) ou o último se todos passados
+  const sorted = marcos.sort((a,b)=>{
+    const da = new Date(a['Data']||a['Data *']||0);
+    const db = new Date(b['Data']||b['Data *']||0);
+    return da - db;
+  });
+  const next = sorted.find(m => new Date(m['Data']||m['Data *']) >= today);
+  const chosen = next || sorted[sorted.length - 1];
+  const desc = (chosen['Descrição *']||chosen['Descrição']||'').replace(/^🏁\s*/,'');
+  const data = chosen['Data']||chosen['Data *']||'';
+  return {desc, data};
+}
+
+function getLatestSentimento(code){
+  const rows=STATE.sentimento
+    .filter(s=>(s['Código Projeto *']||s['Código Projeto']||'')===code)
+    .sort((a,b)=>String(b['Data *']||'').localeCompare(String(a['Data *']||'')));
+  if (!rows.length) return null;
+  return num(rows[0]['Nota do time (1–10) *']||rows[0]['Nota do time (1-10) *']||0);
+}
+function sentEmoji(n){return n>=7?'🟢':n>=5?'🟡':n>0?'🔴':'';}
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  if (name==='wbs') renderWBS();
+}
+function toggleAccordion(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+function toast(msg,isErr){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=isErr?'#b3261e':'#1a1a1a';
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+function num(v){return parseFloat(v)||0;}
+function pct(v){const n=parseFloat(v);if(isNaN(n))return 0;return n>1?n/100:n;}
+function fmtBRL(n){
+  if(n===null||n===undefined||isNaN(n))return '—';
+  const abs=Math.abs(n),sign=n<0?'−':'';
+  if(abs>=1e6) return sign+'R$ '+(abs/1e6).toFixed(2)+' M';
+  if(abs>=1e3) return sign+'R$ '+Math.round(abs/1e3)+' k';
+  return sign+'R$ '+abs.toFixed(0);
+}
+function fmtDate(v){if(!v)return '';if(v instanceof Date)return v.toISOString().slice(0,10);return String(v).slice(0,10);}
+function fmtNow(){return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function cpiClass(v){return v===null?'':v>=0.95?'good':v>=0.85?'warn':'bad';}
+function spiClass(v){return v===null?'':v>=0.95?'good':v>=0.85?'warn':'bad';}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Restaurar última planilha Google ao abrir a página ───────────────────
+(function(){
+  try {
+    const saved = localStorage.getItem('evm_sheetsId');
+    if (saved) {
+      document.getElementById('sheetIdInput').value = saved;
+      STATE.sheetsId = saved; // permite que refreshBtn funcione mesmo sem recarregar
+      // Mostra faixa discreta no painel de sheets
+      const note = document.createElement('p');
+      note.className = 'sp-note';
+      note.style.cssText = 'margin-top:10px;color:rgba(255,255,255,.8)';
+      note.innerHTML = `💾 Última planilha usada pré-carregada. <a href="#" style="color:#8aaee0" onclick="event.preventDefault();loadFromSheets()">Reconectar agora</a>`;
+      document.getElementById('sheetsStatus').after(note);
+    }
+  } catch(e){}
+})();
+
+// ── Floating tooltip ──────────────────────────────────────────────────────
+(function(){
+  const tip=document.getElementById('ftip'); let active=false;
+  document.querySelectorAll('[data-tip]').forEach(el=>{
+    el.addEventListener('mouseenter',e=>{tip.textContent=el.dataset.tip;tip.classList.add('on');active=true;move(e);});
+    el.addEventListener('mousemove',move);
+    el.addEventListener('mouseleave',()=>{tip.classList.remove('on');active=false;});
+  });
+  function move(e){
+    if(!active)return;
+    const W=tip.offsetWidth||260,H=tip.offsetHeight||80;
+    const vw=window.innerWidth;
+    let x=e.clientX+14,y=e.clientY-H-10;
+    if(x+W>vw-6)x=e.clientX-W-14;
+    if(y<6)y=e.clientY+20;
+    tip.style.left=x+'px';tip.style.top=y+'px';
+  }
+})();
+</script>
+</body>
+</html>
